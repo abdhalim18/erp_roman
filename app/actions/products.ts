@@ -70,18 +70,30 @@ export async function getCategoriesForSelect() {
 
 export async function createProduct(formData: FormData) {
   const supabase = await createClient()
+  const sku = formData.get('sku') as string
+  
+  // Cek apakah SKU sudah ada
+  const { data: existingProduct } = await supabase
+    .from('products')
+    .select('id')
+    .eq('sku', sku)
+    .single()
+  
+  if (existingProduct) {
+    return { success: false, error: 'SKU sudah digunakan. Silakan gunakan SKU yang lain.' }
+  }
   
   const product = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
-    category: formData.get('category') as string,
-    sku: formData.get('sku') as string,
+    category_id: formData.get('category') as string,
+    sku: sku,
     price: parseFloat(formData.get('price') as string),
     cost: formData.get('cost') ? parseFloat(formData.get('cost') as string) : null,
-    stock: parseInt(formData.get('stock') as string),
-    min_stock: parseInt(formData.get('min_stock') as string),
+    stock: parseInt(formData.get('stock') as string) || 0,
+    min_stock: parseInt(formData.get('min_stock') as string) || 0,
     unit: formData.get('unit') as string || 'unit',
-    status: formData.get('status') as 'active' | 'inactive' | 'discontinued',
+    status: formData.get('status') as 'active' | 'inactive' | 'discontinued' || 'active',
   }
   
   const { error } = await supabase
@@ -102,7 +114,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const product = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
-    category: formData.get('category') as string,
+    category_id: formData.get('category') as string,
     sku: formData.get('sku') as string,
     price: parseFloat(formData.get('price') as string),
     cost: formData.get('cost') ? parseFloat(formData.get('cost') as string) : null,

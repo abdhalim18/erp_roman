@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   FileText,
   Settings,
+  Truck,
 } from 'lucide-react'
 
 const menuItems = [
@@ -28,6 +29,11 @@ const menuItems = [
     title: 'Categories',
     href: '/admin/categories',
     icon: Tags,
+  },
+  {
+    title: 'Suppliers',
+    href: '/admin/suppliers',
+    icon: Truck,
   },
   {
     title: 'Customers',

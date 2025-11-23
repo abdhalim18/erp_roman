@@ -7,6 +7,7 @@ import { Plus, Search, Package, Edit, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ProductDialog } from '@/components/products/product-dialog'
 import { deleteProduct, type Product } from '@/app/actions/products'
+import { formatRupiah } from '@/lib/utils'
 
 interface ProductsClientProps {
   initialProducts: Product[]
@@ -25,8 +26,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
 
   const filteredProducts = initialProducts.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleAddProduct = () => {
@@ -126,9 +126,9 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                   filteredProducts.map((product) => (
                     <tr key={product.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{product.category}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{product.category_name || 'Uncategorized'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{product.sku}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">${product.price.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{formatRupiah(product.price)}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={product.stock <= product.min_stock ? 'text-red-600 font-medium' : 'text-gray-900'}>
                           {product.stock}
@@ -199,7 +199,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
             <CardTitle className="text-sm font-medium text-gray-600">Total Value</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">${stats.totalValue.toFixed(2)}</div>
+            <div className="text-3xl font-bold">{formatRupiah(stats.totalValue)}</div>
             <p className="text-xs text-muted-foreground mt-1">Inventory value</p>
           </CardContent>
         </Card>

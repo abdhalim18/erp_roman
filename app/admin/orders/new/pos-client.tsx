@@ -10,6 +10,7 @@ import { CustomerDialog } from '@/components/customers/customer-dialog'
 import { type Product } from '@/app/actions/products'
 import { createOrderWithItems } from '@/app/actions/orders'
 import { Loader2, Plus, Minus, Trash2, Search } from 'lucide-react'
+import { formatRupiah } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
 type POSNewOrderProps = {
@@ -46,12 +47,14 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
   }, [createOpen, router])
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return products
-    return products.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
-    )
-  }, [search, products])
+  const q = search.trim().toLowerCase()
+  if (!q) return products
+  return products.filter(
+    (p) => p.name.toLowerCase().includes(q) || 
+           p.sku.toLowerCase().includes(q)
+    // Menghapus pencarian berdasarkan category_id karena tidak relevan
+  )
+}, [search, products])
 
   const addToCart = (p: Product) => {
     setCart((prev) => {
@@ -149,7 +152,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                     <div className="text-xs text-gray-500">SKU: {p.sku}</div>
                     <div className="text-xs text-gray-500">Stock: {p.stock}</div>
                   </div>
-                  <div className="text-sm font-semibold">${p.price.toFixed(2)}</div>
+                  <div className="text-sm font-semibold">{formatRupiah(p.price)}</div>
                 </div>
                 <Button className="mt-3 w-full" size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0}>
                   <Plus className="mr-2 h-4 w-4" /> Add
@@ -216,8 +219,8 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                         />
                       </div>
                       <div className="text-right">
-                        <div className="text-xs text-gray-500">Subtotal: ${lineSubtotal.toFixed(2)}</div>
-                        <div className="text-sm font-semibold">Line total: ${lineTotal.toFixed(2)}</div>
+                        <div className="text-xs text-gray-500">Subtotal: {formatRupiah(lineSubtotal)}</div>
+                        <div className="text-sm font-semibold">Line total: {formatRupiah(lineTotal)}</div>
                       </div>
                     </div>
                   </div>
@@ -227,15 +230,15 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
               <div className="border-t pt-3 space-y-1 text-sm">
                 <div className="flex items-center justify-between">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatRupiah(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Discount</span>
-                  <span>-${totalDiscount.toFixed(2)}</span>
+                  <span>-{formatRupiah(totalDiscount)}</span>
                 </div>
                 <div className="flex items-center justify-between font-semibold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatRupiah(total)}</span>
                 </div>
               </div>
             </div>
