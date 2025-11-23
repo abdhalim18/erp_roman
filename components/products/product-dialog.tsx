@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { createProduct, updateProduct, type Product, getCategoriesForSelect } from '@/app/actions/products'
 import { Loader2 } from 'lucide-react'
+import { formatRupiah, parseRupiah } from '@/lib/utils'
 
 interface ProductDialogProps {
   open: boolean
@@ -35,8 +36,10 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
   const [error, setError] = useState('')
   const [categories, setCategories] = useState<{id: string, name: string}[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [price, setPrice] = useState('')
+  const [cost, setCost] = useState('')
 
-  // Load categories on component mount
+  // Load categories and set initial values on component mount
   useEffect(() => {
     const loadCategories = async () => {
       const { categories, error } = await getCategoriesForSelect()
@@ -46,8 +49,17 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
       setIsLoadingCategories(false)
     }
     
+    // Set initial price and cost values
+    if (product) {
+      setPrice(product.price ? product.price.toString() : '0')
+      setCost(product.cost ? product.cost.toString() : '0')
+    } else {
+      setPrice('0')
+      setCost('0')
+    }
+    
     loadCategories()
-  }, [])
+  }, [product])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -55,6 +67,13 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
     setError('')
 
     const formData = new FormData(e.currentTarget)
+    
+    // Convert formatted values back to numbers
+    const priceValue = parseRupiah(price)
+    const costValue = cost ? parseRupiah(cost) : 0
+    
+    formData.set('price', priceValue.toString())
+    if (cost) formData.set('cost', costValue.toString())
 
     try {
       const result = mode === 'create' 
@@ -179,12 +198,19 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
               <Input
                 id="price"
                 name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={product?.price}
+                type="text"
+                value={formatRupiah(parseFloat(price) || 0)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '')
+                  setPrice(value)
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value.replace(/\D/g, '')
+                  setPrice(value || '0')
+                }}
                 required
                 disabled={loading}
+                placeholder="0"
               />
             </div>
 
@@ -193,11 +219,18 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
               <Input
                 id="cost"
                 name="cost"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={product?.cost || ''}
+                type="text"
+                value={cost ? formatRupiah(parseFloat(cost) || 0) : ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '')
+                  setCost(value)
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value.replace(/\D/g, '')
+                  setCost(value || '')
+                }}
                 disabled={loading}
+                placeholder="0"
               />
             </div>
           </div>

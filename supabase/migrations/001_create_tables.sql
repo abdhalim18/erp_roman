@@ -55,8 +55,8 @@ CREATE TABLE public.products (
   description TEXT,
   category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
   sku TEXT UNIQUE NOT NULL,
-  price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
-  cost DECIMAL(10, 2) CHECK (cost >= 0),
+  price BIGINT NOT NULL CHECK (price >= 0) DEFAULT 0,
+  cost BIGINT CHECK (cost >= 0) DEFAULT 0,
   stock INTEGER DEFAULT 0 CHECK (stock >= 0),
   min_stock INTEGER DEFAULT 10,
   unit TEXT DEFAULT 'unit',
@@ -70,9 +70,9 @@ CREATE TABLE public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_number TEXT UNIQUE NOT NULL,
   customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
-  total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
-  discount DECIMAL(10, 2) DEFAULT 0 CHECK (discount >= 0),
-  tax DECIMAL(10, 2) DEFAULT 0 CHECK (tax >= 0),
+  total_amount BIGINT NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
+  discount BIGINT DEFAULT 0 CHECK (discount >= 0),
+  tax BIGINT DEFAULT 0 CHECK (tax >= 0),
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
   payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'partial', 'paid', 'refunded')),
   payment_method TEXT,
@@ -88,8 +88,8 @@ CREATE TABLE public.order_items (
   product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
   product_name TEXT NOT NULL,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  unit_price DECIMAL(10, 2) NOT NULL CHECK (unit_price >= 0),
-  subtotal DECIMAL(10, 2) NOT NULL CHECK (subtotal >= 0),
+  unit_price BIGINT NOT NULL CHECK (unit_price >= 0),
+  subtotal BIGINT NOT NULL CHECK (subtotal >= 0),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -174,16 +174,16 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Insert products
 INSERT INTO products (name, description, category_id, sku, price, cost, stock, min_stock, status) VALUES
-('Flea & Tick Prevention', 'Monthly flea and tick prevention treatment for dogs', (SELECT id FROM categories WHERE name = 'Medications'), 'MED-001', 45.99, 25.00, 50, 10, 'active'),
-('Dog Food - Premium', 'High-quality dry dog food, 15kg bag', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-001', 89.99, 50.00, 30, 5, 'active'),
-('Cat Food - Grain Free', 'Grain-free wet cat food, 24-pack', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-002', 34.99, 18.00, 45, 10, 'active'),
-('Pet Shampoo', 'Hypoallergenic pet shampoo, 500ml', (SELECT id FROM categories WHERE name = 'Grooming'), 'GROOM-001', 19.99, 8.00, 75, 15, 'active'),
-('Dental Chews', 'Dental health chews for dogs, 30-pack', (SELECT id FROM categories WHERE name = 'Treats'), 'TREAT-001', 24.99, 12.00, 60, 10, 'active'),
-('Heartworm Prevention', 'Monthly heartworm prevention medication', (SELECT id FROM categories WHERE name = 'Medications'), 'MED-002', 52.99, 28.00, 40, 10, 'active'),
-('Cat Litter - Clumping', 'Premium clumping cat litter, 20kg', (SELECT id FROM categories WHERE name = 'Supplies'), 'SUPP-001', 29.99, 15.00, 25, 8, 'active'),
-('Pet Vitamins', 'Daily multivitamin supplement for pets', (SELECT id FROM categories WHERE name = 'Supplies'), 'SUPP-002', 39.99, 20.00, 55, 10, 'active'),
-('Nail Clippers', 'Professional pet nail clippers', (SELECT id FROM categories WHERE name = 'Grooming'), 'GROOM-002', 15.99, 7.00, 80, 15, 'active'),
-('Pet Carrier', 'Portable pet carrier for travel', (SELECT id FROM categories WHERE name = 'Accessories'), 'ACC-001', 69.99, 35.00, 20, 5, 'active')
+('Flea & Tick Prevention', 'Monthly flea and tick prevention treatment for dogs', (SELECT id FROM categories WHERE name = 'Medications'), 'MED-001', 459900, 250000, 50, 10, 'active'),
+('Dog Food - Premium', 'High-quality dry dog food, 15kg bag', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-001', 899900, 500000, 30, 5, 'active'),
+('Cat Food - Grain Free', 'Grain-free wet cat food, 24-pack', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-002', 349900, 180000, 45, 10, 'active'),
+('Pet Shampoo', 'Hypoallergenic pet shampoo, 500ml', (SELECT id FROM categories WHERE name = 'Grooming'), 'GROOM-001', 199900, 80000, 75, 15, 'active'),
+('Dental Chews', 'Dental health chews for dogs, 30-pack', (SELECT id FROM categories WHERE name = 'Treats'), 'TREAT-001', 249900, 120000, 60, 10, 'active'),
+('Heartworm Prevention', 'Monthly heartworm prevention medication', (SELECT id FROM categories WHERE name = 'Medications'), 'MED-002', 529900, 280000, 40, 10, 'active'),
+('Cat Litter - Clumping', 'Premium clumping cat litter, 20kg', (SELECT id FROM categories WHERE name = 'Supplies'), 'SUPP-001', 299900, 150000, 25, 8, 'active'),
+('Pet Vitamins', 'Daily multivitamin supplement for pets', (SELECT id FROM categories WHERE name = 'Supplies'), 'SUPP-002', 399900, 200000, 55, 10, 'active'),
+('Nail Clippers', 'Professional pet nail clippers', (SELECT id FROM categories WHERE name = 'Grooming'), 'GROOM-002', 159900, 70000, 80, 15, 'active'),
+('Pet Carrier', 'Portable pet carrier for travel', (SELECT id FROM categories WHERE name = 'Accessories'), 'ACC-001', 699900, 350000, 20, 5, 'active')
 ON CONFLICT (sku) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
@@ -204,26 +204,25 @@ INSERT INTO customers (name, email, phone, address, city, state, zip_code, statu
 
 -- Insert orders
 INSERT INTO orders (order_number, customer_id, total_amount, discount, tax, status, payment_status, payment_method) VALUES
-('ORD-2024-001', (SELECT id FROM customers WHERE email = 'john.smith@email.com'), 156.97, 0, 12.56, 'completed', 'paid', 'credit_card'),
-('ORD-2024-002', (SELECT id FROM customers WHERE email = 'sarah.j@email.com'), 89.99, 5.00, 6.80, 'completed', 'paid', 'debit_card'),
-('ORD-2024-003', (SELECT id FROM customers WHERE email = 'mbrown@email.com'), 74.98, 0, 6.00, 'processing', 'paid', 'credit_card'),
-('ORD-2024-004', (SELECT id FROM customers WHERE email = 'emily.davis@email.com'), 45.99, 0, 3.68, 'pending', 'unpaid', NULL),
-('ORD-2024-005', (SELECT id FROM customers WHERE email = 'dwilson@email.com'), 124.97, 10.00, 9.20, 'completed', 'paid', 'cash');
+('ORD-2024-001', (SELECT id FROM customers WHERE email = 'john.smith@email.com'), 899900, 0, 0, 'completed', 'paid', 'card'),
+('ORD-2024-002', (SELECT id FROM customers WHERE email = 'sarah.j@email.com'), 349900, 0, 0, 'completed', 'paid', 'transfer'),
+('ORD-2024-003', (SELECT id FROM customers WHERE email = 'mike.w@email.com'), 249900, 50000, 0, 'completed', 'paid', 'cash'),
+('ORD-2024-004', (SELECT id FROM customers WHERE email = 'lisa.b@email.com'), 1999600, 100000, 152000, 'processing', 'partial', 'card'),
+('ORD-2024-005', (SELECT id FROM customers WHERE email = 'dwilson@email.com'), 1249700, 100000, 92000, 'completed', 'paid', 'cash');
 
 -- Insert order items
 INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal) VALUES
 -- Order 1
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE sku = 'MED-001'), 'Flea & Tick Prevention', 2, 45.99, 91.98),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE sku = 'TREAT-001'), 'Dental Chews', 1, 24.99, 24.99),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE sku = 'SUPP-002'), 'Pet Vitamins', 1, 39.99, 39.99),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE sku = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
 -- Order 2
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-002'), (SELECT id FROM products WHERE sku = 'FOOD-001'), 'Dog Food - Premium', 1, 89.99, 89.99),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-002'), (SELECT id FROM products WHERE sku = 'FOOD-002'), 'Cat Food - Grain Free', 1, 349900, 349900),
 -- Order 3
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE sku = 'FOOD-002'), 'Cat Food - Grain Free', 1, 34.99, 34.99),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE sku = 'SUPP-001'), 'Cat Litter - Clumping', 1, 29.99, 29.99),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE sku = 'GROOM-001'), 'Pet Shampoo', 1, 19.99, 19.99),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE sku = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900),
 -- Order 4
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'MED-001'), 'Flea & Tick Prevention', 1, 45.99, 45.99),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'GROOM-001'), 'Pet Shampoo', 2, 199900, 399800),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'MED-001'), 'Flea & Tick Prevention', 1, 459900, 459900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'MED-002'), 'Heartworm Prevention', 1, 529900, 529900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'SUPP-001'), 'Cat Litter - Clumping', 1, 299900, 299900),
 -- Order 5
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'MED-002'), 'Heartworm Prevention', 1, 52.99, 52.99),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'ACC-001'), 'Pet Carrier', 1, 69.99, 69.99);
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900);
