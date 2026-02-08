@@ -1,4 +1,4 @@
-# VetMed ERP System
+# Roman ERP System
 
 A modern, full-stack ERP system for veterinary medicine management. This application provides comprehensive tools for managing products, customers, and orders with real-time inventory tracking.
 
