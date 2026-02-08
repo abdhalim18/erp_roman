@@ -19,9 +19,9 @@ import { Search, Plus } from 'lucide-react'
 type Supplier = {
   id: string
   name: string
-  contact_person: string | null
-  email: string | null
-  phone: string | null
+  contact_person: string
+  email: string
+  phone: string
   status: 'active' | 'inactive'
 }
 
@@ -49,7 +49,12 @@ export default function SuppliersPage() {
 
       if (error) throw error
 
-      setSuppliers(data || [])
+      setSuppliers((data || []).map((s: any) => ({
+        ...s,
+        contact_person: s.contact_person || '',
+        email: s.email || '',
+        phone: s.phone || '',
+      })))
     } catch (error) {
       console.error('Error fetching suppliers:', error)
     } finally {

@@ -62,7 +62,7 @@ export function SupplierDialog({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<SupplierFormValues>({
+  } = useForm({
     resolver: zodResolver(supplierSchema),
     defaultValues: {
       name: '',
@@ -105,7 +105,7 @@ export function SupplierDialog({
   const onSubmit = async (data: SupplierFormValues) => {
     try {
       setLoading(true)
-      
+
       if (supplier) {
         // Update existing supplier
         const { error } = await supabase
@@ -117,7 +117,7 @@ export function SupplierDialog({
           .eq('id', supplier.id)
 
         if (error) throw error
-        
+
         toast.success('Supplier updated successfully')
       } else {
         // Create new supplier
@@ -127,10 +127,10 @@ export function SupplierDialog({
           .select()
 
         if (error) throw error
-        
+
         toast.success('Supplier created successfully')
       }
-      
+
       onOpenChange(false)
       onSuccess()
     } catch (error) {
@@ -143,7 +143,7 @@ export function SupplierDialog({
 
   const handleDelete = async () => {
     if (!supplier) return
-    
+
     try {
       setLoading(true)
       const { error } = await supabase
@@ -152,7 +152,7 @@ export function SupplierDialog({
         .eq('id', supplier.id)
 
       if (error) throw error
-      
+
       toast.success('Supplier deleted successfully')
       onOpenChange(false)
       onSuccess()

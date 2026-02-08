@@ -16,6 +16,7 @@ export type Product = {
   min_stock: number
   unit: string
   status: 'active' | 'inactive' | 'discontinued'
+  expiry_date: string | null
   created_at: string
   updated_at: string
 }
@@ -29,7 +30,7 @@ export type ProductWithCategory = Product & {
 
 export async function getProducts() {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('products')
     .select(`
@@ -37,19 +38,19 @@ export async function getProducts() {
       categories (id, name)
     `)
     .order('created_at', { ascending: false })
-  
+
   if (error) {
     console.error('Error fetching products:', error)
     return { products: [], error: error.message }
   }
-  
+
   // Transform the data to match the Product type
   const products = data.map(product => ({
     ...product,
     category_id: product.category_id,
     category_name: product.categories?.name || null
   }))
-  
+
   return { products, error: null }
 }
 
@@ -64,25 +65,27 @@ export async function getCategoriesForSelect() {
     console.error('Error fetching categories:', error)
     return { categories: [], error: error.message }
   }
-  
+
   return { categories: data, error: null }
 }
 
+import { createAdminClient } from '@/lib/supabase/admin'
+
 export async function createProduct(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const sku = formData.get('sku') as string
-  
+
   // Cek apakah SKU sudah ada
   const { data: existingProduct } = await supabase
     .from('products')
     .select('id')
     .eq('sku', sku)
     .single()
-  
+
   if (existingProduct) {
     return { success: false, error: 'SKU sudah digunakan. Silakan gunakan SKU yang lain.' }
   }
-  
+
   const product = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
@@ -94,23 +97,24 @@ export async function createProduct(formData: FormData) {
     min_stock: parseInt(formData.get('min_stock') as string) || 0,
     unit: formData.get('unit') as string || 'unit',
     status: formData.get('status') as 'active' | 'inactive' | 'discontinued' || 'active',
+    expiry_date: formData.get('expiry_date') as string || null,
   }
-  
+
   const { error } = await supabase
     .from('products')
     .insert([product])
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/products')
   return { success: true, error: null }
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   const product = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
@@ -122,33 +126,34 @@ export async function updateProduct(id: string, formData: FormData) {
     min_stock: parseInt(formData.get('min_stock') as string),
     unit: formData.get('unit') as string || 'unit',
     status: formData.get('status') as 'active' | 'inactive' | 'discontinued',
+    expiry_date: formData.get('expiry_date') as string || null,
   }
-  
+
   const { error } = await supabase
     .from('products')
     .update(product)
     .eq('id', id)
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/products')
   return { success: true, error: null }
 }
 
 export async function deleteProduct(id: string) {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   const { error } = await supabase
     .from('products')
     .delete()
     .eq('id', id)
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/products')
   return { success: true, error: null }
 }

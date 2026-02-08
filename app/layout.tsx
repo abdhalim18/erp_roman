@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VetMed ERP System",
-  description: "Veterinary Medicine ERP Management System",
+  title: "Toko Roman",
+  description: "Toko Roman Management System",
 };
 
 export default function RootLayout({

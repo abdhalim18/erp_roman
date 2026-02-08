@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { login } from '@/app/actions/auth'
+import { createClient } from '@/lib/supabase/client' // Import client Supabase
 import { LogIn, Loader2 } from 'lucide-react'
 
 export function LoginForm() {
@@ -22,17 +23,33 @@ export function LoginForm() {
     setLoading(true)
 
     try {
+      // 1. Lakukan login standar
       const result = await login(email, password)
       
       if (result.error) {
         setError(result.error)
+        setLoading(false)
+        return
+      }
+
+      // 2. Cek role pengguna untuk redirect yang sesuai
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // Ambil role dari metadata, default ke 'admin' jika tidak ada
+      const role = user?.user_metadata?.role || 'admin'
+
+      // 3. Redirect berdasarkan role
+      if (role === 'cashier') {
+        router.push('/cashier')
       } else {
         router.push('/admin')
-        router.refresh()
       }
+      
+      router.refresh()
+      
     } catch (err) {
       setError('An unexpected error occurred')
-    } finally {
       setLoading(false)
     }
   }
@@ -40,9 +57,9 @@ export function LoginForm() {
   return (
     <Card className="shadow-xl">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
+        <CardTitle className="text-2xl font-bold">VetMed Login</CardTitle>
         <CardDescription>
-          Enter your credentials to access the admin dashboard
+          Enter your credentials to access the system
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,7 +69,7 @@ export function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@example.com"
+              placeholder="user@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

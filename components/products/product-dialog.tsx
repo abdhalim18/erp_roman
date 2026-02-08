@@ -34,7 +34,7 @@ interface ProductDialogProps {
 export function ProductDialog({ open, onOpenChange, product, mode }: ProductDialogProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [categories, setCategories] = useState<{id: string, name: string}[]>([])
+  const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const [price, setPrice] = useState('')
   const [cost, setCost] = useState('')
@@ -48,7 +48,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
       }
       setIsLoadingCategories(false)
     }
-    
+
     // Set initial price and cost values
     if (product) {
       setPrice(product.price ? product.price.toString() : '0')
@@ -57,7 +57,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
       setPrice('0')
       setCost('0')
     }
-    
+
     loadCategories()
   }, [product])
 
@@ -67,16 +67,16 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
     setError('')
 
     const formData = new FormData(e.currentTarget)
-    
+
     // Convert formatted values back to numbers
     const priceValue = parseRupiah(price)
     const costValue = cost ? parseRupiah(cost) : 0
-    
+
     formData.set('price', priceValue.toString())
     if (cost) formData.set('cost', costValue.toString())
 
     try {
-      const result = mode === 'create' 
+      const result = mode === 'create'
         ? await createProduct(formData)
         : await updateProduct(product!.id, formData)
 
@@ -99,7 +99,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Add New Product' : 'Edit Product'}</DialogTitle>
           <DialogDescription>
-            {mode === 'create' 
+            {mode === 'create'
               ? 'Fill in the details to add a new product to your inventory'
               : 'Update the product information'}
           </DialogDescription>
@@ -119,7 +119,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="description" className="text-right mt-2">
                 Description
@@ -132,7 +132,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 rows={3}
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category_id" className="text-right">
                 Category
@@ -143,8 +143,8 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 </div>
               ) : (
                 <div className="col-span-3">
-                  <Select 
-                    name="category_id" 
+                  <Select
+                    name="category_id"
                     defaultValue={product?.category_id || undefined}
                   >
                     <SelectTrigger>
@@ -162,7 +162,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 </div>
               )}
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="sku" className="text-right">
                 SKU
@@ -175,7 +175,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="unit" className="text-right">
                 Unit
@@ -273,6 +273,17 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                   <SelectItem value="discontinued">Discontinued</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expiry_date">Expiry Date</Label>
+              <Input
+                id="expiry_date"
+                name="expiry_date"
+                type="date"
+                defaultValue={product?.expiry_date ? new Date(product.expiry_date).toISOString().split('T')[0] : ''}
+                disabled={loading}
+              />
             </div>
           </div>
 

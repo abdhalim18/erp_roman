@@ -39,16 +39,17 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
     setLoading(true)
     setError('')
 
-    const formData = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const formData = new FormData(form)
 
     try {
-      const result = mode === 'create' 
+      const result = mode === 'create'
         ? await createCustomer(formData)
         : await updateCustomer(customer!.id, formData)
 
       if (result.success) {
         onOpenChange(false)
-        e.currentTarget.reset()
+        form.reset()
       } else {
         setError(result.error || 'An error occurred')
       }
@@ -65,7 +66,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Add New Customer' : 'Edit Customer'}</DialogTitle>
           <DialogDescription>
-            {mode === 'create' 
+            {mode === 'create'
               ? 'Fill in the details to add a new customer'
               : 'Update the customer information'}
           </DialogDescription>

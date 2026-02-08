@@ -19,12 +19,13 @@ interface ProductsClientProps {
 }
 
 export function ProductsClient({ initialProducts, stats }: ProductsClientProps) {
+  const [products, setProducts] = useState(initialProducts)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
   const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredProducts = initialProducts.filter(product =>
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -42,8 +43,22 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await deleteProduct(id)
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return
+    }
+
+    try {
+      const result = await deleteProduct(id)
+      if (result.success) {
+        setProducts(products.filter((p) => p.id !== id))
+        // toast.success('Product deleted successfully')
+      } else {
+        console.error('Failed to delete product:', result.error)
+        alert('Failed to delete product: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      alert('An error occurred while deleting the product')
     }
   }
 
@@ -99,6 +114,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">SKU</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Stock</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Expiry</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Actions</th>
                 </tr>
@@ -106,7 +122,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center">
+                    <td colSpan={8} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-500">
                         <Package className="h-12 w-12 mb-4 text-gray-400" />
                         <p className="text-lg font-medium">No products found</p>
@@ -133,6 +149,15 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                         <span className={product.stock <= product.min_stock ? 'text-red-600 font-medium' : 'text-gray-900'}>
                           {product.stock}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {product.expiry_date
+                          ? new Date(product.expiry_date).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })
+                          : '-'}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(product.status)}`}>

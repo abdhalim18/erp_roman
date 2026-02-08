@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { sendLowStockEmail } from '@/lib/email'
 
 export type Order = {
   id: string
@@ -38,15 +39,15 @@ export type CreateOrderItemInput = {
 }
 
 export type CreateOrderPayload = {
-  customer_id: string
+  customer_id?: string | null
   payment_method: string
-  notes?: string
   items: CreateOrderItemInput[]
+  notes?: string
 }
 
 export async function getOrders() {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   const { data, error } = await supabase
     .from('orders')
     .select(`
@@ -56,24 +57,29 @@ export async function getOrders() {
         name,
         email
       ),
-      order_items (*)
+      order_items (
+        *,
+        products (
+          name
+        )
+      )
     `)
     .order('created_at', { ascending: false })
-  
+
   if (error) {
     console.error('Error fetching orders:', error)
     return { orders: [], error: error.message }
   }
-  
+
   return { orders: data, error: null }
 }
 
 export async function createOrder(formData: FormData) {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   // Generate order number
   const orderNumber = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
-  
+
   const order = {
     order_number: orderNumber,
     customer_id: formData.get('customer_id') as string || null,
@@ -85,25 +91,23 @@ export async function createOrder(formData: FormData) {
     payment_method: formData.get('payment_method') as string || null,
     notes: formData.get('notes') as string || null,
   }
-  
+
   const { error } = await supabase
     .from('orders')
     .insert([order])
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/orders')
   return { success: true, error: null }
 }
 
-export async function createOrderWithItems(payload: CreateOrderPayload): Promise<{ success: boolean; error?: string; order_id?: string; order_number?: string }>{
-  const supabase = await createClient()
+export async function createOrderWithItems(payload: CreateOrderPayload): Promise<{ success: boolean; error?: string; order_id?: string; order_number?: string }> {
+  const supabase = createAdminClient()
 
-  if (!payload.customer_id) {
-    return { success: false, error: 'Customer is required' }
-  }
+  // customer_id is now optional
   if (!payload.items || payload.items.length === 0) {
     return { success: false, error: 'No items in order' }
   }
@@ -141,7 +145,7 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
   const orderNumber = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
   const orderRow = {
     order_number: orderNumber,
-    customer_id: payload.customer_id,
+    customer_id: payload.customer_id || null, // Handle undefined/null
     total_amount,
     discount: 0,
     tax: 0,
@@ -185,8 +189,20 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
       .from('products')
       .update({ stock: newStock })
       .eq('id', item.product_id)
+
     if (updError) {
       return { success: false, error: updError.message }
+    }
+
+    // Check for low stock alert
+    // Fetch settings to get dynamic threshold
+    const { getSettings } = await import('@/app/actions/settings') // Dynamic import to avoid circular dep if any
+    const settings = await getSettings()
+    const threshold = settings.lowStockThreshold || 8
+
+    if (newStock <= threshold) {
+      // Allow this to fail silently so it doesn't block the order
+      await sendLowStockEmail(item.product_name, newStock).catch(console.error)
     }
   }
 
@@ -195,8 +211,8 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
   return { success: true, order_id, order_number: orderNumber }
 }
 
-export async function getCustomersForSelect(): Promise<{ customers: { id: string; name: string; email: string | null }[]; error: string | null }>{
-  const supabase = await createClient()
+export async function getCustomersForSelect(): Promise<{ customers: { id: string; name: string; email: string | null }[]; error: string | null }> {
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('customers')
     .select('id, name, email, status')
@@ -212,8 +228,8 @@ export async function getCustomersForSelect(): Promise<{ customers: { id: string
 }
 
 export async function updateOrder(id: string, formData: FormData) {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   const order = {
     customer_id: formData.get('customer_id') as string || null,
     total_amount: parseFloat(formData.get('total_amount') as string),
@@ -224,32 +240,82 @@ export async function updateOrder(id: string, formData: FormData) {
     payment_method: formData.get('payment_method') as string || null,
     notes: formData.get('notes') as string || null,
   }
-  
+
   const { error } = await supabase
     .from('orders')
     .update(order)
     .eq('id', id)
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/orders')
   return { success: true, error: null }
 }
 
+
 export async function deleteOrder(id: string) {
-  const supabase = await createClient()
-  
+  const supabase = createAdminClient()
+
   const { error } = await supabase
     .from('orders')
     .delete()
     .eq('id', id)
-  
+
   if (error) {
     return { success: false, error: error.message }
   }
-  
+
   revalidatePath('/admin/orders')
+  return { success: true, error: null }
+}
+
+export async function getOrderById(id: string) {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      customers (
+        name,
+        email,
+        phone,
+        address
+      ),
+      order_items (
+        *,
+        products (
+          name,
+          sku
+        )
+      )
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching order:', error)
+    return { order: null, error: error.message }
+  }
+
+  return { order: data, error: null }
+}
+
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const supabase = createAdminClient()
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', orderId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/admin/orders')
+  revalidatePath(`/admin/orders/${orderId}`)
   return { success: true, error: null }
 }

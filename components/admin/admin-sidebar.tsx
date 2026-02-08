@@ -8,6 +8,7 @@ import {
   Package,
   Tags,
   Users,
+  User as UserIcon,
   ShoppingCart,
   FileText,
   Settings,
@@ -41,6 +42,11 @@ const menuItems = [
     icon: Users,
   },
   {
+    title: 'Users',
+    href: '/admin/users',
+    icon: UserIcon,
+  },
+  {
     title: 'Orders',
     href: '/admin/orders',
     icon: ShoppingCart,
@@ -61,7 +67,7 @@ export function AdminSidebar() {
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
-          
+
           return (
             <Link
               key={item.href}

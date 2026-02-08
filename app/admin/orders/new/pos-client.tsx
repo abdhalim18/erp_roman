@@ -47,14 +47,14 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
   }, [createOpen, router])
 
   const filtered = useMemo(() => {
-  const q = search.trim().toLowerCase()
-  if (!q) return products
-  return products.filter(
-    (p) => p.name.toLowerCase().includes(q) || 
-           p.sku.toLowerCase().includes(q)
-    // Menghapus pencarian berdasarkan category_id karena tidak relevan
-  )
-}, [search, products])
+    const q = search.trim().toLowerCase()
+    if (!q) return products
+    return products.filter(
+      (p) => p.name.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q)
+      // Menghapus pencarian berdasarkan category_id karena tidak relevan
+    )
+  }, [search, products])
 
   const addToCart = (p: Product) => {
     setCart((prev) => {
@@ -98,7 +98,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
   const totalDiscount = useMemo(() => cart.reduce((sum, i) => sum + i.discount, 0), [cart])
   const total = useMemo(() => Math.max(0, subtotal - totalDiscount), [subtotal, totalDiscount])
 
-  const canCheckout = cart.length > 0 && !!customerId && cart.every((i) => i.quantity <= i.maxStock)
+  const canCheckout = cart.length > 0 && cart.every((i) => i.quantity <= i.maxStock)
 
   const handleCheckout = () => {
     setError('')
@@ -107,7 +107,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
 
     startTransition(async () => {
       const payload = {
-        customer_id: customerId,
+        customer_id: customerId === 'guest' || customerId === '' ? undefined : customerId,
         payment_method: paymentMethod,
         notes,
         items: cart.map((i) => ({
@@ -246,13 +246,14 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
 
           <div className="mt-6 space-y-3">
             <div className="space-y-2">
-              <Label>Customer</Label>
+              <Label>Customer (Optional)</Label>
               <div className="flex gap-2">
                 <Select value={customerId} onValueChange={setCustomerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
+                    <SelectValue placeholder="Guest (No Customer)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="guest">Guest (No Customer)</SelectItem>
                     {customers.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name} {c.email ? `(${c.email})` : ''}
