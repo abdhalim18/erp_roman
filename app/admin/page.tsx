@@ -22,29 +22,29 @@ import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 
 const quickActions = [
   {
-    title: 'New Product',
-    description: 'Add a new product to inventory',
+    title: 'Produk Baru',
+    description: 'Tambah produk baru ke inventaris',
     icon: <Plus className="h-5 w-5" />,
     href: '/admin/products',
     variant: 'default' as const
   },
   {
-    title: 'New Order',
-    description: 'Create a new sales order',
+    title: 'Pesanan Baru',
+    description: 'Buat pesanan penjualan baru',
     icon: <ShoppingCart className="h-5 w-5" />,
     href: '/admin/orders/new',
     variant: 'outline' as const
   },
   {
-    title: 'Add Customer',
-    description: 'Register a new customer',
+    title: 'Tambah Pelanggan',
+    description: 'Daftar pelanggan baru',
     icon: <UserPlus className="h-5 w-5" />,
     href: '/admin/customers',
     variant: 'outline' as const
   },
   {
-    title: 'Inventory Report',
-    description: 'Generate inventory report',
+    title: 'Laporan Inventaris',
+    description: 'Buat laporan inventaris',
     icon: <FileText className="h-5 w-5" />,
     href: '/admin/products',
     variant: 'outline' as const
@@ -87,23 +87,23 @@ export default async function AdminDashboard() {
               <span className="text-green-500">+12.5%</span> dari bulan lalu
             </p> */}
             {/* Removed hardcoded comparison for now */}
-            <p className="text-xs text-muted-foreground">Updated just now</p>
+            <p className="text-xs text-muted-foreground">Diperbarui baru saja</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Pesanan</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalOrders}</div>
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                <span className="text-amber-500">{stats.pendingOrders} pending</span>
+                <span className="text-amber-500">{stats.pendingOrders} tertunda</span>
               </p>
               <Link href="/admin/orders" className="text-xs text-blue-600 hover:underline flex items-center">
-                View all <ArrowUpRight className="ml-1 h-3 w-3" />
+                Lihat semua <ArrowUpRight className="ml-1 h-3 w-3" />
               </Link>
             </div>
           </CardContent>
@@ -111,7 +111,7 @@ export default async function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <CardTitle className="text-sm font-medium">Produk</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -119,11 +119,11 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
                 {stats.lowStockItems > 0 ? (
-                  <span className="text-amber-500">{stats.lowStockItems} low in stock</span>
-                ) : 'All items in stock'}
+                  <span className="text-amber-500">{stats.lowStockItems} stok menipis</span>
+                ) : 'Semua item tersedia'}
               </p>
               <Link href="/admin/products" className="text-xs text-blue-600 hover:underline flex items-center">
-                Manage <ArrowUpRight className="ml-1 h-3 w-3" />
+                Kelola <ArrowUpRight className="ml-1 h-3 w-3" />
               </Link>
             </div>
           </CardContent>
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">Pelanggan</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -139,7 +139,7 @@ export default async function AdminDashboard() {
             {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+5.2%</span> from last month
             </p> */}
-            <p className="text-xs text-muted-foreground">Total registered customers</p>
+            <p className="text-xs text-muted-foreground">Total pelanggan terdaftar</p>
           </CardContent>
         </Card>
       </div>
@@ -148,8 +148,8 @@ export default async function AdminDashboard() {
         {/* Quick Actions */}
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Frequently used actions</CardDescription>
+            <CardTitle>Aksi Cepat</CardTitle>
+            <CardDescription>Aksi yang sering digunakan</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {quickActions.map((action) => (
@@ -200,17 +200,17 @@ export default async function AdminDashboard() {
                   </div>
                   <Button variant="ghost" type='button' size="icon" className="h-8 w-8">
                     <ArrowUpRight className="h-4 w-4" />
-                    <span className="sr-only">View</span>
+                    <span className="sr-only">Lihat</span>
                   </Button>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No recent activities</p>
+              <p className="text-sm text-muted-foreground text-center py-4">Tidak ada aktivitas terbaru</p>
             )}
 
             <div className="text-center">
               <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                View all activities
+                Lihat semua aktivitas
               </Button>
             </div>
           </CardContent>
@@ -239,14 +239,14 @@ export default async function AdminDashboard() {
                   <div className="flex items-center p-3 bg-amber-50 rounded-lg">
                     <AlertCircle className="h-5 w-5 text-amber-600 mr-3" />
                     <div>
-                      <p className="text-sm font-medium">Low Stock Items</p>
+                      <p className="text-sm font-medium">Item Stok Menipis</p>
                       <p className="text-xs text-muted-foreground">
-                        {stats.lowStockItems} items become low in stock (≤ 8 pcs).
+                        {stats.lowStockItems} item stoknya menipis (≤ 8 pcs).
                       </p>
                     </div>
                     <Link href="/admin/products" className="ml-auto">
                       <Button variant="outline" size="sm">
-                        Manage
+                        Kelola
                       </Button>
                     </Link>
                   </div>
@@ -259,7 +259,7 @@ export default async function AdminDashboard() {
                     ))}
                     {stats.lowStockItems > 5 && (
                       <p className="text-xs text-center text-muted-foreground pt-1">
-                        + {stats.lowStockItems - 5} more items
+                        + {stats.lowStockItems - 5} item lainnya
                       </p>
                     )}
                   </div>

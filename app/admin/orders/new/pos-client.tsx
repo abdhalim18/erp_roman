@@ -121,10 +121,10 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
 
       const res = await createOrderWithItems(payload)
       if (!res.success) {
-        setError(res.error || 'Failed to create order')
+        setError(res.error || 'Gagal membuat pesanan')
         return
       }
-      setSuccess(`Order ${res.order_number} created`)
+      setSuccess(`Pesanan ${res.order_number} dibuat`)
       setCart([])
       setNotes('')
       setCustomerId('')
@@ -136,10 +136,10 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
     <div className="grid gap-6 md:grid-cols-3">
       <Card className="md:col-span-2">
         <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle>Products</CardTitle>
+          <CardTitle>Produk</CardTitle>
           <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input className="pl-10" placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-10" placeholder="Cari produk..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
         </CardHeader>
         <CardContent>
@@ -150,12 +150,12 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                   <div>
                     <div className="text-sm font-medium">{p.name}</div>
                     <div className="text-xs text-gray-500">SKU: {p.sku}</div>
-                    <div className="text-xs text-gray-500">Stock: {p.stock}</div>
+                    <div className="text-xs text-gray-500">Stok: {p.stock}</div>
                   </div>
                   <div className="text-sm font-semibold">{formatRupiah(p.price)}</div>
                 </div>
                 <Button className="mt-3 w-full" size="sm" onClick={() => addToCart(p)} disabled={p.stock <= 0}>
-                  <Plus className="mr-2 h-4 w-4" /> Add
+                  <Plus className="mr-2 h-4 w-4" /> Tambah
                 </Button>
               </div>
             ))}
@@ -165,11 +165,11 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Cart</CardTitle>
+          <CardTitle>Keranjang</CardTitle>
         </CardHeader>
         <CardContent>
           {cart.length === 0 ? (
-            <div className="text-sm text-gray-500">No items in cart</div>
+            <div className="text-sm text-gray-500">Tidak ada item di keranjang</div>
           ) : (
             <div className="space-y-3">
               {cart.map((i) => {
@@ -185,7 +185,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                     </div>
                     <div className="grid grid-cols-3 gap-2 items-center">
                       <div>
-                        <Label className="text-xs">Qty (max {i.maxStock})</Label>
+                        <Label className="text-xs">Jml (maks {i.maxStock})</Label>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
@@ -211,7 +211,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                         </div>
                       </div>
                       <div>
-                        <Label className="text-xs">Discount</Label>
+                        <Label className="text-xs">Diskon</Label>
                         <Input
                           inputMode="decimal"
                           value={i.discount}
@@ -220,7 +220,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-gray-500">Subtotal: {formatRupiah(lineSubtotal)}</div>
-                        <div className="text-sm font-semibold">Line total: {formatRupiah(lineTotal)}</div>
+                        <div className="text-sm font-semibold">Total baris: {formatRupiah(lineTotal)}</div>
                       </div>
                     </div>
                   </div>
@@ -233,7 +233,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                   <span>{formatRupiah(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Discount</span>
+                  <span>Diskon</span>
                   <span>-{formatRupiah(totalDiscount)}</span>
                 </div>
                 <div className="flex items-center justify-between font-semibold">
@@ -246,14 +246,14 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
 
           <div className="mt-6 space-y-3">
             <div className="space-y-2">
-              <Label>Customer (Optional)</Label>
+              <Label>Pelanggan (Opsional)</Label>
               <div className="flex gap-2">
                 <Select value={customerId} onValueChange={setCustomerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Guest (No Customer)" />
+                    <SelectValue placeholder="Tamu (Tanpa Pelanggan)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="guest">Guest (No Customer)</SelectItem>
+                    <SelectItem value="guest">Tamu (Tanpa Pelanggan)</SelectItem>
                     {customers.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name} {c.email ? `(${c.email})` : ''}
@@ -262,28 +262,28 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                   </SelectContent>
                 </Select>
                 <Button type="button" variant="outline" onClick={() => setCreateOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" /> New
+                  <Plus className="mr-2 h-4 w-4" /> Baru
                 </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Payment method</Label>
+              <Label>Metode pembayaran</Label>
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="cash">Tunai</SelectItem>
+                  <SelectItem value="card">Kartu</SelectItem>
                   <SelectItem value="transfer">Transfer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Notes</Label>
-              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" />
+              <Label>Catatan</Label>
+              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Catatan opsional" />
             </div>
 
             {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">{error}</div>}

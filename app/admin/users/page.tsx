@@ -16,9 +16,9 @@ export default async function UsersPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-2xl font-bold tracking-tight">Users</h3>
+                    <h3 className="text-2xl font-bold tracking-tight">Pengguna</h3>
                     <p className="text-muted-foreground">
-                        Manage cashier and admin accounts.
+                        Kelola akun kasir dan admin.
                     </p>
                 </div>
                 <UserDialog />
@@ -26,7 +26,7 @@ export default async function UsersPage() {
 
             {error && (
                 <div className="bg-destructive/15 text-destructive px-4 py-2 rounded-md">
-                    Error loading users: {error}
+                    Gagal memuat pengguna: {error}
                 </div>
             )}
 
@@ -35,16 +35,16 @@ export default async function UsersPage() {
                     <thead className="bg-muted/50 border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">Email</th>
-                            <th className="px-4 py-3 font-medium">Created At</th>
-                            <th className="px-4 py-3 font-medium">Last Sign In</th>
-                            <th className="px-4 py-3 font-medium text-right">Actions</th>
+                            <th className="px-4 py-3 font-medium">Dibuat Pada</th>
+                            <th className="px-4 py-3 font-medium">Terakhir Masuk</th>
+                            <th className="px-4 py-3 font-medium text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {users?.length === 0 ? (
                             <tr>
                                 <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                                    No users found.
+                                    Tidak ada pengguna ditemukan.
                                 </td>
                             </tr>
                         ) : (
@@ -57,7 +57,7 @@ export default async function UsersPage() {
                                     <td className="px-4 py-3 text-muted-foreground">
                                         {user.last_sign_in_at
                                             ? new Date(user.last_sign_in_at).toLocaleString()
-                                            : 'Never'}
+                                            : 'Belum Pernah'}
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <DeleteUserButton userId={user.id} />

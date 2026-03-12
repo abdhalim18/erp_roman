@@ -17,42 +17,42 @@ import {
 
 const menuItems = [
   {
-    title: 'Dashboard',
+    title: 'Dasbor',
     href: '/admin',
     icon: LayoutDashboard,
   },
   {
-    title: 'Products',
+    title: 'Produk',
     href: '/admin/products',
     icon: Package,
   },
   {
-    title: 'Categories',
+    title: 'Kategori',
     href: '/admin/categories',
     icon: Tags,
   },
   {
-    title: 'Suppliers',
+    title: 'Pemasok',
     href: '/admin/suppliers',
     icon: Truck,
   },
   {
-    title: 'Customers',
+    title: 'Pelanggan',
     href: '/admin/customers',
     icon: Users,
   },
   {
-    title: 'Users',
+    title: 'Pengguna',
     href: '/admin/users',
     icon: UserIcon,
   },
   {
-    title: 'Orders',
+    title: 'Pesanan',
     href: '/admin/orders',
     icon: ShoppingCart,
   },
   {
-    title: 'Settings',
+    title: 'Pengaturan',
     href: '/admin/settings',
     icon: Settings,
   },

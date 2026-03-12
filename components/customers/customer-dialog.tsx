@@ -53,7 +53,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
       } else {
         setError(result.error || 'An error occurred')
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -64,17 +64,17 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Add New Customer' : 'Edit Customer'}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Tambah Pelanggan Baru' : 'Edit Pelanggan'}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'Fill in the details to add a new customer'
-              : 'Update the customer information'}
+              ? 'Isi detail untuk menambahkan pelanggan baru'
+              : 'Perbarui informasi pelanggan'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Customer Name *</Label>
+            <Label htmlFor="name">Nama Pelanggan *</Label>
             <Input
               id="name"
               name="name"
@@ -97,7 +97,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">Telepon</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -108,7 +108,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Alamat</Label>
             <Input
               id="address"
               name="address"
@@ -119,7 +119,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">Kota</Label>
               <Input
                 id="city"
                 name="city"
@@ -129,7 +129,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state">Provinsi</Label>
               <Input
                 id="state"
                 name="state"
@@ -139,7 +139,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zip_code">Zip Code</Label>
+              <Label htmlFor="zip_code">Kode Pos</Label>
               <Input
                 id="zip_code"
                 name="zip_code"
@@ -150,7 +150,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Catatan</Label>
             <Textarea
               id="notes"
               name="notes"
@@ -167,8 +167,8 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">Aktif</SelectItem>
+                <SelectItem value="inactive">Nonaktif</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -186,11 +186,11 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'create' ? 'Add Customer' : 'Update Customer'}
+              {mode === 'create' ? 'Tambah Pelanggan' : 'Perbarui Pelanggan'}
             </Button>
           </DialogFooter>
         </form>

@@ -169,18 +169,18 @@ export function SupplierDialog({
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>{supplier ? 'Edit Supplier' : 'Add New Supplier'}</DialogTitle>
+            <DialogTitle>{supplier ? 'Edit Pemasok' : 'Tambah Pemasok Baru'}</DialogTitle>
             <DialogDescription>
-              {supplier ? 'Update the supplier details below.' : 'Fill in the details to add a new supplier.'}
+              {supplier ? 'Perbarui detail pemasok di bawah ini.' : 'Isi detail untuk menambahkan pemasok baru.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">Nama *</Label>
                 <Input
                   id="name"
-                  placeholder="Supplier name"
+                  placeholder="Nama pemasok"
                   {...register('name')}
                   className={errors.name ? 'border-red-500' : ''}
                 />
@@ -189,10 +189,10 @@ export function SupplierDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">Contact Person</Label>
+                <Label htmlFor="contact_person">Kontak Person</Label>
                 <Input
                   id="contact_person"
-                  placeholder="Contact person name"
+                  placeholder="Nama kontak person"
                   {...register('contact_person')}
                 />
               </div>
@@ -204,7 +204,7 @@ export function SupplierDialog({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder="email@contoh.com"
                   {...register('email')}
                   className={errors.email ? 'border-red-500' : ''}
                 />
@@ -213,65 +213,65 @@ export function SupplierDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Telepon</Label>
                 <Input
                   id="phone"
-                  placeholder="Phone number"
+                  placeholder="Nomor telepon"
                   {...register('phone')}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">Alamat</Label>
               <Input
                 id="address"
-                placeholder="Street address"
+                placeholder="Alamat jalan"
                 {...register('address')}
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">Kota</Label>
                 <Input
                   id="city"
-                  placeholder="City"
+                  placeholder="Kota"
                   {...register('city')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="state">State/Province</Label>
+                <Label htmlFor="state">Provinsi</Label>
                 <Input
                   id="state"
-                  placeholder="State/Province"
+                  placeholder="Provinsi"
                   {...register('state')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="zip_code">ZIP/Postal Code</Label>
+                <Label htmlFor="zip_code">Kode Pos</Label>
                 <Input
                   id="zip_code"
-                  placeholder="ZIP/Postal code"
+                  placeholder="Kode Pos"
                   {...register('zip_code')}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tax_number">Tax Number</Label>
+              <Label htmlFor="tax_number">NPWP</Label>
               <Input
                 id="tax_number"
-                placeholder="Tax/VAT number"
+                placeholder="Nomor NPWP/Pajak"
                 {...register('tax_number')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">Catatan</Label>
               <Textarea
                 id="notes"
-                placeholder="Additional notes"
+                placeholder="Catatan tambahan"
                 {...register('notes')}
                 rows={3}
               />
@@ -284,8 +284,8 @@ export function SupplierDialog({
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 {...register('status')}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
               </select>
             </div>
           </div>
@@ -298,7 +298,7 @@ export function SupplierDialog({
                 disabled={loading}
                 className="mr-auto"
               >
-                Delete
+                Hapus
               </Button>
             )}
             <Button
@@ -307,10 +307,10 @@ export function SupplierDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

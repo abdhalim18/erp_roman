@@ -18,7 +18,7 @@ const settingsSchema = z.object({
     }),
     storeAddress: z.string().optional(),
     storePhone: z.string().optional(),
-    lowStockThreshold: z.coerce.number().min(1, {
+    lowStockThreshold: z.number().min(1, {
         message: 'Threshold must be at least 1.',
     }),
     alertEmail: z.string().email().optional().or(z.literal('')),
@@ -47,12 +47,12 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         try {
             const result = await updateSettings(data)
             if (result.success) {
-                toast.success('Settings updated successfully')
+                toast.success('Pengaturan berhasil diperbarui')
             } else {
-                toast.error('Failed to update settings: ' + result.error)
+                toast.error('Gagal memperbarui pengaturan: ' + result.error)
             }
-        } catch (error) {
-            toast.error('An unexpected error occurred')
+        } catch {
+            toast.error('Terjadi kesalahan yang tidak terduga')
         } finally {
             setLoading(false)
         }
@@ -61,16 +61,16 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
             <div className="space-y-2">
-                <Label htmlFor="storeName">Store Name</Label>
+                <Label htmlFor="storeName">Nama Toko</Label>
                 <Input id="storeName" placeholder="Toko Roman" {...register('storeName')} />
-                <p className="text-sm text-muted-foreground">This is the name that will be displayed on your store.</p>
+                <p className="text-sm text-muted-foreground">Ini adalah nama yang akan ditampilkan di toko Anda.</p>
                 {errors.storeName && (
                     <p className="text-sm font-medium text-destructive">{errors.storeName.message}</p>
                 )}
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="storeAddress">Store Address</Label>
+                <Label htmlFor="storeAddress">Alamat Toko</Label>
                 <Input id="storeAddress" placeholder="Jl. Raya..." {...register('storeAddress')} />
                 {errors.storeAddress && (
                     <p className="text-sm font-medium text-destructive">{errors.storeAddress.message}</p>
@@ -78,7 +78,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="storePhone">Store Phone / WA</Label>
+                <Label htmlFor="storePhone">Telepon / WA Toko</Label>
                 <Input id="storePhone" placeholder="08..." {...register('storePhone')} />
                 {errors.storePhone && (
                     <p className="text-sm font-medium text-destructive">{errors.storePhone.message}</p>
@@ -86,18 +86,18 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
-                <Input id="lowStockThreshold" type="number" {...register('lowStockThreshold')} />
-                <p className="text-sm text-muted-foreground">Products with stock at or below this value will trigger an alert.</p>
+                <Label htmlFor="lowStockThreshold">Ambang Batas Stok Menipis</Label>
+                <Input id="lowStockThreshold" type="number" {...register('lowStockThreshold', { valueAsNumber: true })} />
+                <p className="text-sm text-muted-foreground">Produk dengan stok di atau di bawah nilai ini akan memicu peringatan.</p>
                 {errors.lowStockThreshold && (
                     <p className="text-sm font-medium text-destructive">{errors.lowStockThreshold.message}</p>
                 )}
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="alertEmail">Alert Email Recipient</Label>
+                <Label htmlFor="alertEmail">Email Penerima Peringatan</Label>
                 <Input id="alertEmail" placeholder="admin@example.com" {...register('alertEmail')} />
-                <p className="text-sm text-muted-foreground">Email address to receive low stock notifications.</p>
+                <p className="text-sm text-muted-foreground">Alamat email untuk menerima notifikasi stok menipis.</p>
                 {errors.alertEmail && (
                     <p className="text-sm font-medium text-destructive">{errors.alertEmail.message}</p>
                 )}
@@ -105,7 +105,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
             <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update settings
+                Perbarui pengaturan
             </Button>
         </form>
     )

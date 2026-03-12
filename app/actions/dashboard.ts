@@ -36,7 +36,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         supabase.from('orders').select('*', { count: 'exact', head: true }),
 
         // 2. Pending Orders
-        supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['pending', 'processing']),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
 
         // 3. Total Revenue (fetch amounts of paid orders)
         supabase.from('orders').select('total_amount').or('payment_status.eq.paid,payment_status.eq.partial'),
@@ -134,8 +134,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export type ChartData = {
     date: string
-    revenue: number
-    profit: number
+    pendapatan: number
+    laba: number
 }
 
 export async function getDashboardCharts(): Promise<ChartData[]> {
@@ -212,11 +212,11 @@ export async function getDashboardCharts(): Promise<ChartData[]> {
         .map(([date, stats]) => ({
             date: new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), // Format for display
             originalDate: date, // Keep for sorting
-            revenue: stats.revenue,
-            profit: stats.profit
+            pendapatan: stats.revenue,
+            laba: stats.profit
         }))
         .sort((a, b) => a.originalDate.localeCompare(b.originalDate))
-        .map(({ date, revenue, profit }) => ({ date, revenue, profit }))
+        .map(({ date, pendapatan, laba }) => ({ date, pendapatan, laba }))
 
     return chartData
 }

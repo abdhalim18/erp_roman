@@ -42,7 +42,7 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
   }
 
   const handleDeleteCustomer = async (id: string) => {
-    if (confirm('Are you sure you want to delete this customer? This will also delete all associated pets.')) {
+    if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
       await deleteCustomer(id)
     }
   }
@@ -57,12 +57,12 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600 mt-2">Manage your customer database</p>
+          <h1 className="text-3xl font-bold text-gray-900">Pelanggan</h1>
+          <p className="text-gray-600 mt-2">Kelola basis data pelanggan Anda</p>
         </div>
         <Button onClick={handleAddCustomer}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Customer
+          Tambah Pelanggan
         </Button>
       </div>
 
@@ -70,14 +70,14 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Customer List</CardTitle>
-              <CardDescription>View and manage all customers</CardDescription>
+              <CardTitle>Daftar Pelanggan</CardTitle>
+              <CardDescription>Lihat dan kelola semua pelanggan</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search customers..."
+                  placeholder="Cari pelanggan..."
                   className="pl-10 w-64"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -91,12 +91,12 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Customer Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Pelanggan</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Pet(s)</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Telepon</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Hewan Peliharaan</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Actions</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,14 +105,14 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
                     <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-500">
                         <Users className="h-12 w-12 mb-4 text-gray-400" />
-                        <p className="text-lg font-medium">No customers found</p>
+                        <p className="text-lg font-medium">Tidak ada pelanggan ditemukan</p>
                         <p className="text-sm mt-1">
-                          {searchTerm ? 'Try a different search term' : 'Get started by adding your first customer'}
+                          {searchTerm ? 'Coba kata kunci pencarian lain' : 'Mulai dengan menambahkan pelanggan pertama Anda'}
                         </p>
                         {!searchTerm && (
                           <Button className="mt-4" onClick={handleAddCustomer}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Customer
+                            Tambah Pelanggan
                           </Button>
                         )}
                       </div>
@@ -125,7 +125,7 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
                       <td className="px-4 py-3 text-sm text-gray-600">{customer.email || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{customer.phone || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">
-                        {customer.pets?.length || 0} {customer.pets?.length === 1 ? 'pet' : 'pets'}
+                        {customer.pets?.length || 0} {customer.pets?.length === 1 ? 'hewan' : 'hewan'}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(customer.status)}`}>
@@ -163,41 +163,41 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
       <div className="grid gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Pelanggan</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registered customers</p>
+            <p className="text-xs text-muted-foreground mt-1">Pelanggan terdaftar</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Customers</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Pelanggan Aktif</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.activeCustomers}</div>
-            <p className="text-xs text-muted-foreground mt-1">Active status</p>
+            <p className="text-xs text-muted-foreground mt-1">Status aktif</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">New This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Baru Bulan Ini</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground mt-1">New registrations</p>
+            <p className="text-xs text-muted-foreground mt-1">Pendaftaran baru</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Pets</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Hewan</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.totalPets}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registered pets</p>
+            <p className="text-xs text-muted-foreground mt-1">Hewan terdaftar</p>
           </CardContent>
         </Card>
       </div>

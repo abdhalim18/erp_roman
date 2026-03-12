@@ -85,12 +85,12 @@ export default function SuppliersPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Suppliers</h1>
-          <p className="text-muted-foreground">Manage your suppliers and their information</p>
+          <h1 className="text-2xl font-bold">Pemasok</h1>
+          <p className="text-muted-foreground">Kelola pemasok dan informasi mereka</p>
         </div>
         <Button onClick={handleAddNew}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Supplier
+          Tambah Pemasok
         </Button>
       </div>
 
@@ -99,7 +99,7 @@ export default function SuppliersPage() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search suppliers..."
+            placeholder="Cari pemasok..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -111,28 +111,28 @@ export default function SuppliersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Contact Person</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Kontak Person</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
+              <TableHead>Telepon</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  Loading...
+                  Memuat...
                 </TableCell>
               </TableRow>
             ) : suppliers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
                   {searchTerm ? (
-                    'No suppliers found matching your search.'
+                    'Tidak ada pemasok yang cocok dengan pencarian Anda.'
                   ) : (
-                    'No suppliers found. Add your first supplier to get started.'
+                    'Tidak ada pemasok ditemukan. Tambahkan pemasok pertama Anda untuk memulai.'
                   )}
                 </TableCell>
               </TableRow>

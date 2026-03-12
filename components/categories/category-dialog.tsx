@@ -45,15 +45,15 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{category?.id ? 'Edit' : 'Add New'} Category</DialogTitle>
+            <DialogTitle>{category?.id ? 'Edit' : 'Tambah'} Kategori</DialogTitle>
             <DialogDescription>
-              {category?.id ? 'Update the category details.' : 'Add a new category to organize your products.'}
+              {category?.id ? 'Perbarui detail kategori.' : 'Tambah kategori baru untuk mengorganisir produk Anda.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name *
+                Nama *
               </Label>
               <Input
                 id="name"
@@ -65,7 +65,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="description" className="text-right mt-2">
-                Description
+                Deskripsi
               </Label>
               <Textarea
                 id="description"
@@ -78,10 +78,10 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

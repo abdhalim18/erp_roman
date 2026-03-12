@@ -86,8 +86,8 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
       } else {
         setError(result.error || 'An error occurred')
       }
-    } catch (err) {
-      setError('An unexpected error occurred')
+    } catch {
+      setError('Terjadi kesalahan yang tidak terduga')
     } finally {
       setLoading(false)
     }
@@ -97,11 +97,11 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Add New Product' : 'Edit Product'}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Tambah Produk Baru' : 'Edit Produk'}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'Fill in the details to add a new product to your inventory'
-              : 'Update the product information'}
+              ? 'Isi detail untuk menambahkan produk baru ke inventaris Anda'
+              : 'Perbarui informasi produk'}
           </DialogDescription>
         </DialogHeader>
 
@@ -109,7 +109,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
           <div className="space-y-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name
+                Nama
               </Label>
               <Input
                 id="name"
@@ -122,7 +122,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="description" className="text-right mt-2">
-                Description
+                Deskripsi
               </Label>
               <Textarea
                 id="description"
@@ -135,7 +135,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category_id" className="text-right">
-                Category
+                Kategori
               </Label>
               {isLoadingCategories ? (
                 <div className="col-span-3 flex items-center justify-center p-2">
@@ -148,10 +148,10 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                     defaultValue={product?.category_id || undefined}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -178,7 +178,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="unit" className="text-right">
-                Unit
+                Satuan
               </Label>
               <div className="col-span-3">
                 <Input
@@ -186,7 +186,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                   name="unit"
                   defaultValue={product?.unit || 'unit'}
                   disabled={loading}
-                  placeholder="e.g., unit, kg, liter"
+                  placeholder="misalnya: unit, kg, liter"
                 />
               </div>
             </div>
@@ -194,7 +194,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price *</Label>
+              <Label htmlFor="price">Harga *</Label>
               <Input
                 id="price"
                 name="price"
@@ -215,7 +215,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cost">Cost</Label>
+              <Label htmlFor="cost">Modal</Label>
               <Input
                 id="cost"
                 name="cost"
@@ -237,7 +237,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock *</Label>
+              <Label htmlFor="stock">Stok *</Label>
               <Input
                 id="stock"
                 name="stock"
@@ -250,7 +250,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="min_stock">Min Stock</Label>
+              <Label htmlFor="min_stock">Stok Min</Label>
               <Input
                 id="min_stock"
                 name="min_stock"
@@ -268,15 +268,15 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="discontinued">Discontinued</SelectItem>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="inactive">Nonaktif</SelectItem>
+                  <SelectItem value="discontinued">Dihentikan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expiry_date">Expiry Date</Label>
+              <Label htmlFor="expiry_date">Tanggal Kedaluwarsa</Label>
               <Input
                 id="expiry_date"
                 name="expiry_date"
@@ -300,11 +300,11 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'create' ? 'Add Product' : 'Update Product'}
+              {mode === 'create' ? 'Tambah Produk' : 'Perbarui Produk'}
             </Button>
           </DialogFooter>
         </form>

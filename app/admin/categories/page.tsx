@@ -27,7 +27,7 @@ export default function CategoriesPage() {
       setCategories(categories)
       setFilteredCategories(categories)
     } catch (error) {
-      toast.error('Failed to load categories')
+      toast.error('Gagal memuat kategori')
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -51,18 +51,18 @@ export default function CategoriesPage() {
   }, [searchTerm, categories])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) return
+    if (!confirm('Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.')) return
     
     try {
       setIsDeleting(id)
       const { success, error } = await deleteCategory(id)
       if (error) throw new Error(error)
       if (success) {
-        toast.success('Category deleted successfully')
+        toast.success('Kategori berhasil dihapus')
         fetchCategories()
       }
     } catch (error) {
-      toast.error('Failed to delete category')
+      toast.error('Gagal menghapus kategori')
       console.error(error)
     } finally {
       setIsDeleting(null)
@@ -78,13 +78,13 @@ export default function CategoriesPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Categories</h1>
+        <h1 className="text-2xl font-bold">Kategori</h1>
         <Button onClick={() => {
           setCurrentCategory(null)
           setIsDialogOpen(true)
         }}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Category
+          Tambah Kategori
         </Button>
       </div>
 
@@ -93,7 +93,7 @@ export default function CategoriesPage() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search categories..."
+            placeholder="Cari kategori..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -105,23 +105,23 @@ export default function CategoriesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Deskripsi</TableHead>
+              <TableHead>Dibuat</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4">
-                  Loading categories...
+                  Memuat kategori...
                 </TableCell>
               </TableRow>
             ) : filteredCategories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4">
-                  No categories found
+                  Tidak ada kategori ditemukan
                 </TableCell>
               </TableRow>
             ) : (
@@ -129,7 +129,7 @@ export default function CategoriesPage() {
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {category.description || 'No description'}
+                    {category.description || 'Tidak ada deskripsi'}
                   </TableCell>
                   <TableCell>
                     {new Date(category.created_at).toLocaleDateString()}
@@ -152,7 +152,7 @@ export default function CategoriesPage() {
                         onClick={() => category.id && handleDelete(category.id)}
                         disabled={isDeleting === category.id}
                       >
-                        {isDeleting === category.id ? 'Deleting...' : <Trash2 className="h-4 w-4" />}
+                        {isDeleting === category.id ? 'Menghapus...' : <Trash2 className="h-4 w-4" />}
                       </Button>
                     </div>
                   </TableCell>

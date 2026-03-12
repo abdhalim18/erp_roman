@@ -38,7 +38,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold text-blue-600">Toko Roman</h1>
           <span className="text-sm text-gray-500 bg-blue-50 px-3 py-1 rounded-full">
-            Admin Panel
+            Panel Admin
           </span>
         </div>
 
@@ -65,12 +65,12 @@ export function AdminHeader({ user }: AdminHeaderProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>Profil</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>Keluar</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -15,7 +15,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
         return (
             <div className="p-6">
                 <div className="bg-red-50 text-red-600 p-4 rounded-md">
-                    Error loading order: {error}
+                    Gagal memuat pesanan: {error}
                 </div>
             </div>
         )
@@ -71,21 +71,21 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     </Button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            Order {order.order_number}
+                            Pesanan {order.order_number}
                         </h1>
                         <p className="text-gray-500 text-sm">
-                            Placed on {formatDate(order.created_at)}
+                            Dibuat pada {formatDate(order.created_at)}
                         </p>
                     </div>
                 </div>
                 <div className="flex space-x-2">
                     <Button variant="outline">
                         <Printer className="mr-2 h-4 w-4" />
-                        Print
+                        Cetak
                     </Button>
                     <Button variant="outline">
                         <Download className="mr-2 h-4 w-4" />
-                        Download
+                        Unduh
                     </Button>
                 </div>
             </div>
@@ -95,9 +95,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     {/* Order Items */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Order Items</CardTitle>
+                            <CardTitle>Item Pesanan</CardTitle>
                             <CardDescription>
-                                List of products in this order
+                                Daftar produk dalam pesanan ini
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -105,9 +105,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                 <table className="w-full">
                                     <thead>
                                         <tr className="border-b bg-gray-50">
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Product</th>
-                                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Price</th>
-                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Qty</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Produk</th>
+                                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Harga</th>
+                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Jml</th>
                                             <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Total</th>
                                         </tr>
                                     </thead>
@@ -116,7 +116,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                             <tr key={item.id} className="border-b last:border-0 hover:bg-gray-50">
                                                 <td className="px-4 py-3">
                                                     <p className="text-sm font-medium text-gray-900">{item.product_name}</p>
-                                                    <p className="text-xs text-gray-500">{item.products?.sku || 'No SKU'}</p>
+                                                    <p className="text-xs text-gray-500">{item.products?.sku || 'Tanpa SKU'}</p>
                                                 </td>
                                                 <td className="px-4 py-3 text-right text-sm text-gray-600">
                                                     {formatCurrency(item.unit_price)}
@@ -139,7 +139,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         </tr>
                                         {(order.discount > 0) && (
                                             <tr>
-                                                <td colSpan={3} className="px-4 py-2 text-right text-sm font-medium text-red-600">Discount</td>
+                                                <td colSpan={3} className="px-4 py-2 text-right text-sm font-medium text-red-600">Diskon</td>
                                                 <td className="px-4 py-2 text-right text-sm font-medium text-red-600">
                                                     - {formatCurrency(order.discount)}
                                                 </td>
@@ -147,7 +147,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         )}
                                         {(order.tax > 0) && (
                                             <tr>
-                                                <td colSpan={3} className="px-4 py-2 text-right text-sm font-medium text-gray-600">Tax</td>
+                                                <td colSpan={3} className="px-4 py-2 text-right text-sm font-medium text-gray-600">Pajak</td>
                                                 <td className="px-4 py-2 text-right text-sm font-medium text-gray-900">
                                                     {formatCurrency(order.tax)}
                                                 </td>
@@ -168,15 +168,15 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     {/* Payment Info */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Payment Information</CardTitle>
+                            <CardTitle>Informasi Pembayaran</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-4">
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Payment Method</p>
+                                <p className="text-sm text-gray-500 mb-1">Metode Pembayaran</p>
                                 <p className="text-sm font-medium capitalize">{order.payment_method || '-'}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Payment Status</p>
+                                <p className="text-sm text-gray-500 mb-1">Status Pembayaran</p>
                                 <Badge variant={getPaymentStatusColor(order.payment_status) as any}>
                                     {order.payment_status.toUpperCase()}
                                 </Badge>
@@ -194,14 +194,14 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         <CardContent>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-2">Current Status</p>
+                                    <p className="text-sm text-gray-500 mb-2">Status Saat Ini</p>
                                     <Badge className="w-full justify-center py-1.5" variant={getStatusColor(order.status) as any}>
                                         {order.status.toUpperCase()}
                                     </Badge>
                                 </div>
                                 {order.notes && (
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Notes</p>
+                                        <p className="text-sm text-gray-500 mb-1">Catatan</p>
                                         <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
                                             {order.notes}
                                         </div>
@@ -214,7 +214,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     {/* Customer Details */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Customer Details</CardTitle>
+                            <CardTitle>Detail Pelanggan</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {order.customers ? (
@@ -223,7 +223,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         <User className="h-4 w-4 text-gray-400 mt-0.5" />
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">{order.customers.name}</p>
-                                            <p className="text-xs text-gray-500">Customer</p>
+                                            <p className="text-xs text-gray-500">Pelanggan</p>
                                         </div>
                                     </div>
                                     {order.customers.email && (
@@ -253,7 +253,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                 </div>
                             ) : (
                                 <div className="text-sm text-gray-500 italic">
-                                    Guest Customer (No details available)
+                                    Pelanggan Tamu (Tidak ada detail tersedia)
                                 </div>
                             )}
                         </CardContent>

@@ -13,8 +13,8 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
         return (
             <Card className="col-span-4">
                 <CardHeader>
-                    <CardTitle>Revenue & Profit</CardTitle>
-                    <CardDescription>No data available for the last 30 days.</CardDescription>
+                    <CardTitle>Pendapatan & Laba</CardTitle>
+                    <CardDescription>Tidak ada data tersedia untuk 30 hari terakhir</CardDescription>
                 </CardHeader>
             </Card>
         )
@@ -23,8 +23,8 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     return (
         <Card className="col-span-4">
             <CardHeader>
-                <CardTitle>Revenue & Profit (Last 30 Days)</CardTitle>
-                <CardDescription>Daily revenue compared to estimated profit.</CardDescription>
+                <CardTitle>Pendapatan & Laba (30 Hari Terakhir)</CardTitle>
+                <CardDescription>Pendapatan harian dibandingkan dengan laba yang diestimasi.</CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={350}>
@@ -49,8 +49,8 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                             labelStyle={{ color: '#333' }}
                         />
                         <Legend />
-                        <Bar dataKey="revenue" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="profit" name="Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="pendapatan" name="Pendapatan" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="laba" name="Laba" fill="#10b981" radius={[4, 4, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

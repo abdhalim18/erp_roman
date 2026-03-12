@@ -43,7 +43,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
+    if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
       return
     }
 
@@ -54,11 +54,11 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
         // toast.success('Product deleted successfully')
       } else {
         console.error('Failed to delete product:', result.error)
-        alert('Failed to delete product: ' + result.error)
+        alert('Gagal menghapus produk: ' + result.error)
       }
     } catch (error) {
       console.error('Error deleting product:', error)
-      alert('An error occurred while deleting the product')
+      alert('Terjadi kesalahan saat menghapus produk')
     }
   }
 
@@ -75,12 +75,12 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-600 mt-2">Manage your veterinary products and inventory</p>
+          <h1 className="text-3xl font-bold text-gray-900">Produk</h1>
+          <p className="text-gray-600 mt-2">Kelola produk dan inventaris toko Anda</p>
         </div>
         <Button onClick={handleAddProduct}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Product
+          Tambah Produk
         </Button>
       </div>
 
@@ -88,14 +88,14 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Product List</CardTitle>
-              <CardDescription>View and manage all products</CardDescription>
+              <CardTitle>Daftar Produk</CardTitle>
+              <CardDescription>Lihat dan kelola semua produk</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Cari produk..."
                   className="pl-10 w-64"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -109,14 +109,14 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Product Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Category</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Produk</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Kategori</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">SKU</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Stock</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Expiry</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Harga</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Stok</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Kedaluwarsa</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Actions</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -127,12 +127,12 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                         <Package className="h-12 w-12 mb-4 text-gray-400" />
                         <p className="text-lg font-medium">No products found</p>
                         <p className="text-sm mt-1">
-                          {searchTerm ? 'Try a different search term' : 'Get started by adding your first product'}
+                          {searchTerm ? 'Coba kata kunci pencarian lain' : 'Mulai dengan menambahkan produk pertama Anda'}
                         </p>
                         {!searchTerm && (
                           <Button className="mt-4" onClick={handleAddProduct}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Product
+                            Tambah Produk
                           </Button>
                         )}
                       </div>
@@ -142,7 +142,7 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                   filteredProducts.map((product) => (
                     <tr key={product.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{product.category_name || 'Uncategorized'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{product.category_name || 'Tidak ada kategori'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{product.sku}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{formatRupiah(product.price)}</td>
                       <td className="px-4 py-3 text-sm">
@@ -195,37 +195,37 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Products</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Produk</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.totalProducts === 0 ? 'No products in inventory' : 'Products in inventory'}
+              {stats.totalProducts === 0 ? 'Tidak ada produk di inventaris' : 'Produk di inventaris'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Low Stock Items</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Item Stok Menipis</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${stats.lowStockItems > 0 ? 'text-red-600' : ''}`}>
               {stats.lowStockItems}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.lowStockItems === 0 ? 'All items in stock' : 'Items need restocking'}
+              {stats.lowStockItems === 0 ? 'Semua item tersedia' : 'Item perlu ditambah stok'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Value</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Nilai</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{formatRupiah(stats.totalValue)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Inventory value</p>
+            <p className="text-xs text-muted-foreground mt-1">Nilai inventaris</p>
           </CardContent>
         </Card>
       </div>
