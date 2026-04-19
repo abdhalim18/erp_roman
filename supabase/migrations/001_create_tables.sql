@@ -54,7 +54,7 @@ CREATE TABLE public.products (
   name TEXT NOT NULL,
   description TEXT,
   category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
-  sku TEXT UNIQUE NOT NULL,
+  kode_produk TEXT UNIQUE NOT NULL,
   price BIGINT NOT NULL CHECK (price >= 0) DEFAULT 0,
   cost BIGINT CHECK (cost >= 0) DEFAULT 0,
   stock INTEGER DEFAULT 0 CHECK (stock >= 0),
@@ -132,7 +132,7 @@ CREATE TRIGGER update_orders_updated_at
 -- ===========================================
 CREATE INDEX idx_customers_email ON public.customers(email);
 CREATE INDEX idx_customers_status ON public.customers(status);
-CREATE INDEX idx_products_sku ON public.products(sku);
+CREATE INDEX idx_products_kode_produk ON public.products(kode_produk);
 CREATE INDEX idx_products_category_id ON public.products(category_id);
 CREATE INDEX idx_products_status ON public.products(status);
 CREATE INDEX idx_orders_customer_id ON public.orders(customer_id);
@@ -173,7 +173,7 @@ INSERT INTO categories (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert products
-INSERT INTO products (name, description, category_id, sku, price, cost, stock, min_stock, status) VALUES
+INSERT INTO products (name, description, category_id, kode_produk, price, cost, stock, min_stock, status) VALUES
 ('Flea & Tick Prevention', 'Monthly flea and tick prevention treatment for dogs', (SELECT id FROM categories WHERE name = 'Medications'), 'MED-001', 459900, 250000, 50, 10, 'active'),
 ('Dog Food - Premium', 'High-quality dry dog food, 15kg bag', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-001', 899900, 500000, 30, 5, 'active'),
 ('Cat Food - Grain Free', 'Grain-free wet cat food, 24-pack', (SELECT id FROM categories WHERE name = 'Food'), 'FOOD-002', 349900, 180000, 45, 10, 'active'),
@@ -184,7 +184,7 @@ INSERT INTO products (name, description, category_id, sku, price, cost, stock, m
 ('Pet Vitamins', 'Daily multivitamin supplement for pets', (SELECT id FROM categories WHERE name = 'Supplies'), 'SUPP-002', 399900, 200000, 55, 10, 'active'),
 ('Nail Clippers', 'Professional pet nail clippers', (SELECT id FROM categories WHERE name = 'Grooming'), 'GROOM-002', 159900, 70000, 80, 15, 'active'),
 ('Pet Carrier', 'Portable pet carrier for travel', (SELECT id FROM categories WHERE name = 'Accessories'), 'ACC-001', 699900, 350000, 20, 5, 'active')
-ON CONFLICT (sku) DO UPDATE SET
+ON CONFLICT (kode_produk) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
   category_id = EXCLUDED.category_id,
@@ -213,16 +213,17 @@ INSERT INTO orders (order_number, customer_id, total_amount, discount, tax, stat
 -- Insert order items
 INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal) VALUES
 -- Order 1
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE sku = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-001'), (SELECT id FROM products WHERE kode_produk = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
 -- Order 2
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-002'), (SELECT id FROM products WHERE sku = 'FOOD-002'), 'Cat Food - Grain Free', 1, 349900, 349900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-002'), (SELECT id FROM products WHERE kode_produk = 'FOOD-002'), 'Cat Food - Grain Free', 1, 349900, 349900),
 -- Order 3
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE sku = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-003'), (SELECT id FROM products WHERE kode_produk = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900),
 -- Order 4
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'GROOM-001'), 'Pet Shampoo', 2, 199900, 399800),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'MED-001'), 'Flea & Tick Prevention', 1, 459900, 459900),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'MED-002'), 'Heartworm Prevention', 1, 529900, 529900),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE sku = 'SUPP-001'), 'Cat Litter - Clumping', 1, 299900, 299900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE kode_produk = 'GROOM-001'), 'Pet Shampoo', 2, 199900, 399800),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE kode_produk = 'MED-001'), 'Flea & Tick Prevention', 1, 459900, 459900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE kode_produk = 'MED-002'), 'Heartworm Prevention', 1, 529900, 529900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-004'), (SELECT id FROM products WHERE kode_produk = 'SUPP-001'), 'Cat Litter - Clumping', 1, 299900, 299900),
 -- Order 5
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
-((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE sku = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900);
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE kode_produk = 'FOOD-001'), 'Dog Food - Premium', 1, 899900, 899900),
+((SELECT id FROM orders WHERE order_number = 'ORD-2024-005'), (SELECT id FROM products WHERE kode_produk = 'TREAT-001'), 'Dental Chews', 1, 299900, 299900);
+

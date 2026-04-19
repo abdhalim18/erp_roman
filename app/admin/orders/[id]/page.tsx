@@ -1,4 +1,4 @@
-
+import { Fragment } from 'react'
 import { getOrderById } from '@/app/actions/orders'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -113,21 +113,44 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     </thead>
                                     <tbody>
                                         {order.order_items?.map((item: any) => (
-                                            <tr key={item.id} className="border-b last:border-0 hover:bg-gray-50">
-                                                <td className="px-4 py-3">
-                                                    <p className="text-sm font-medium text-gray-900">{item.product_name}</p>
-                                                    <p className="text-xs text-gray-500">{item.products?.sku || 'Tanpa SKU'}</p>
-                                                </td>
-                                                <td className="px-4 py-3 text-right text-sm text-gray-600">
-                                                    {formatCurrency(item.unit_price)}
-                                                </td>
-                                                <td className="px-4 py-3 text-center text-sm text-gray-600">
-                                                    {item.quantity}
-                                                </td>
-                                                <td className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                                                    {formatCurrency(item.subtotal)}
-                                                </td>
-                                            </tr>
+                                            <Fragment key={item.id}>
+                                                <tr className="border-b last:border-0 hover:bg-gray-50">
+                                                    <td className="px-4 py-3">
+                                                        <p className="text-sm font-medium text-gray-900">{item.product_name}</p>
+                                                        <p className="text-xs text-gray-500">{item.products?.kode_produk || 'Tanpa Kode Produk'}</p>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-sm text-gray-600">
+                                                        {formatCurrency(item.unit_price)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center text-sm text-gray-600">
+                                                        {item.quantity}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                                                        {formatCurrency(item.subtotal)}
+                                                    </td>
+                                                </tr>
+                                                {/* Rendering Batch Deductions History */}
+                                                {item.order_item_batches && item.order_item_batches.length > 0 && (
+                                                    <tr className="border-b bg-gray-50">
+                                                      <td colSpan={4} className="px-4 py-2">
+                                                        <div className="flex flex-col gap-1 text-xs text-gray-500">
+                                                            <span className="font-semibold text-gray-700">Detail Pengambilan Stok (FEFO):</span>
+                                                            {item.order_item_batches.map((batchEdge: any, idx: number) => {
+                                                                const expiry = batchEdge.product_batches?.expiry_date 
+                                                                    ? new Date(batchEdge.product_batches.expiry_date).toLocaleDateString('id-ID')
+                                                                    : 'Tanpa Kedaluwarsa'
+                                                                return (
+                                                                    <div key={idx} className="flex gap-2 ml-2 items-center">
+                                                                       <span className="w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+                                                                       <span>Diambil <b>{batchEdge.quantity} pcs</b> dari Batch Kedaluwarsa: {expiry}</span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                      </td>
+                                                    </tr>
+                                                )}
+                                            </Fragment>
                                         ))}
                                     </tbody>
                                     <tfoot className="bg-gray-50">

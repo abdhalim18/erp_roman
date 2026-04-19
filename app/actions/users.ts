@@ -8,6 +8,7 @@ export type User = {
     email?: string
     created_at: string
     last_sign_in_at?: string
+    role: 'admin' | 'cashier'
 }
 
 export async function getUsers() {
@@ -22,18 +23,25 @@ export async function getUsers() {
     // Sort by created_at desc
     const sortedUsers = users.sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
+    ).map(u => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        role: (u.user_metadata?.role || 'admin') as 'admin' | 'cashier'
+    }))
 
-    return { users: sortedUsers as User[], error: null }
+    return { users: sortedUsers, error: null }
 }
 
-export async function createUser(email: string, password: string) {
+export async function createUser(email: string, password: string, role: string) {
     const supabase = createAdminClient()
 
     const { error } = await supabase.auth.admin.createUser({
         email,
         password,
-        email_confirm: true
+        email_confirm: true,
+        user_metadata: { role }
     })
 
     if (error) {

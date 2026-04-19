@@ -27,6 +27,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
   useEffect(() => {
     if (category) {
       setFormData({
+        id: category.id,
         name: category.name || '',
         description: category.description || ''
       })
@@ -42,45 +43,47 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{category?.id ? 'Edit' : 'Tambah'} Kategori</DialogTitle>
-            <DialogDescription>
-              {category?.id ? 'Perbarui detail kategori.' : 'Tambah kategori baru untuk mengorganisir produk Anda.'}
+            <DialogTitle className="text-xl font-bold text-gray-900">{category?.id ? 'Edit Kategori' : 'Tambah Kategori Baru'}</DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              {category?.id ? 'Perbarui detail kategori Anda.' : 'Tambah kategori baru untuk mengorganisir produk Anda.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Nama *
+          <div className="flex flex-col gap-5 py-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-700 text-xs uppercase tracking-wider font-bold">
+                Nama Kategori *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="col-span-3"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 required
+                placeholder="Contoh: ATK, Elektronik..."
               />
             </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="description" className="text-right mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-gray-700 text-xs uppercase tracking-wider font-bold">
                 Deskripsi
               </Label>
               <Textarea
                 id="description"
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value || null })}
-                className="col-span-3"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl transition-all"
                 rows={3}
+                placeholder="Tuliskan keterangan singkat terkait kategori ini..."
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50">
               Batal
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" disabled={isSaving} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-xl shadow-md shadow-emerald-500/20">
               {isSaving ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>

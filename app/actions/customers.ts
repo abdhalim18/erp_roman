@@ -16,20 +16,6 @@ export type Customer = {
   status: 'active' | 'inactive'
   created_at: string
   updated_at: string
-  pets?: Pet[]
-}
-
-export type Pet = {
-  id: string
-  customer_id: string
-  name: string
-  species: string
-  breed: string | null
-  age: number | null
-  weight: number | null
-  notes: string | null
-  created_at: string
-  updated_at: string
 }
 
 export async function getCustomers() {
@@ -46,34 +32,7 @@ export async function getCustomers() {
     return { customers: [], error: customersError.message }
   }
 
-  // Fetch pets for these customers
-  if (!customers || customers.length === 0) {
-    return { customers: [], error: null }
-  }
-
-  const customerIds = customers.map(c => c.id)
-  const { data: pets, error: petsError } = await supabase
-    .from('pets')
-    .select('*')
-    .in('customer_id', customerIds)
-
-  if (petsError) {
-    console.error('Error fetching pets:', petsError)
-    // Return customers without pets if pets fetch fails, or handle as error?
-    // Let's just return customers with empty pets array to be safe
-    return {
-      customers: customers.map((c: any) => ({ ...c, pets: [] })),
-      error: petsError.message
-    }
-  }
-
-  // Merge pets into customers
-  const customersWithPets = customers.map((c: any) => ({
-    ...c,
-    pets: pets ? pets.filter((p: any) => p.customer_id === c.id) : []
-  }))
-
-  return { customers: customersWithPets, error: null }
+  return { customers, error: null }
 }
 
 export async function createCustomer(formData: FormData) {

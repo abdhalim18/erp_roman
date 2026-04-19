@@ -12,8 +12,8 @@ export default async function NewOrderPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">New Order</h1>
-          <p className="text-gray-600 mt-2">Create a new order from available stock</p>
+          <h1 className="text-3xl font-bold text-gray-900">Transaksi Baru</h1>
+          <p className="text-gray-600 mt-2">Buat pesanan baru dari stok yang tersedia</p>
         </div>
       </div>
 

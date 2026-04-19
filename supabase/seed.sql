@@ -21,7 +21,7 @@ INSERT INTO public.suppliers (name, contact_person, email, phone, address, city,
 ON CONFLICT DO NOTHING;
 
 -- 3. Insert Products
-INSERT INTO public.products (name, description, category_id, supplier_id, sku, price, cost, stock, min_stock, unit, status) VALUES
+INSERT INTO public.products (name, description, category_id, supplier_id, kode_produk, price, cost, stock, min_stock, unit, status) VALUES
 ('Smartphone X', 'Latest smartphone model', (SELECT id FROM public.categories WHERE name = 'Electronics'), (SELECT id FROM public.suppliers WHERE name = 'Global Electronics Ltd'), 'ELEC-001', 5000000, 4000000, 50, 10, 'pcs', 'active'),
 ('Laptop Pro', 'High performance laptop', (SELECT id FROM public.categories WHERE name = 'Electronics'), (SELECT id FROM public.suppliers WHERE name = 'Global Electronics Ltd'), 'ELEC-002', 15000000, 12000000, 30, 5, 'pcs', 'active'),
 ('Cotton T-Shirt', 'Comfortable cotton t-shirt', (SELECT id FROM public.categories WHERE name = 'Clothing'), (SELECT id FROM public.suppliers WHERE name = 'Fashion Wholesale'), 'CLOT-001', 100000, 50000, 200, 20, 'pcs', 'active'),
@@ -32,7 +32,7 @@ INSERT INTO public.products (name, description, category_id, supplier_id, sku, p
 ('Ballpoint Pen Set', 'Set of 10 black pens', (SELECT id FROM public.categories WHERE name = 'Stationery'), (SELECT id FROM public.suppliers WHERE name = 'Office Supplies Co'), 'STAT-002', 25000, 15000, 200, 20, 'pack', 'active'),
 ('Office Chair', 'Ergonomic office chair', (SELECT id FROM public.categories WHERE name = 'Furniture'), (SELECT id FROM public.suppliers WHERE name = 'Home Decor Inc'), 'FURN-001', 1200000, 900000, 40, 5, 'pcs', 'active'),
 ('Wooden Desk', 'Minimalist wooden desk', (SELECT id FROM public.categories WHERE name = 'Furniture'), (SELECT id FROM public.suppliers WHERE name = 'Home Decor Inc'), 'FURN-002', 2000000, 1500000, 20, 2, 'pcs', 'active')
-ON CONFLICT (sku) DO UPDATE SET
+ON CONFLICT (kode_produk) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
   category_id = EXCLUDED.category_id,
@@ -72,18 +72,19 @@ DELETE FROM public.order_items WHERE order_id IN (
 
 INSERT INTO public.order_items (order_id, product_id, product_name, quantity, unit_price, subtotal) VALUES
 -- Order 1: Arif (Smartphone X + Cotton T-Shirt)
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-001'), (SELECT id FROM public.products WHERE sku = 'ELEC-001'), 'Smartphone X', 1, 5000000, 5000000),
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-001'), (SELECT id FROM public.products WHERE sku = 'CLOT-001'), 'Cotton T-Shirt', 1, 100000, 100000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-001'), (SELECT id FROM public.products WHERE kode_produk = 'ELEC-001'), 'Smartphone X', 1, 5000000, 5000000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-001'), (SELECT id FROM public.products WHERE kode_produk = 'CLOT-001'), 'Cotton T-Shirt', 1, 100000, 100000),
 
 -- Order 2: Siti (Denim Jeans)
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-002'), (SELECT id FROM public.products WHERE sku = 'CLOT-002'), 'Denim Jeans', 1, 300000, 300000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-002'), (SELECT id FROM public.products WHERE kode_produk = 'CLOT-002'), 'Denim Jeans', 1, 300000, 300000),
 
 -- Order 3: Reza (Premium Rice + Wheat Bread)
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-003'), (SELECT id FROM public.products WHERE sku = 'GROC-001'), 'Premium Rice 5kg', 1, 75000, 75000),
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-003'), (SELECT id FROM public.products WHERE sku = 'GROC-002'), 'Wheat Bread', 1, 20000, 20000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-003'), (SELECT id FROM public.products WHERE kode_produk = 'GROC-001'), 'Premium Rice 5kg', 1, 75000, 75000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-003'), (SELECT id FROM public.products WHERE kode_produk = 'GROC-002'), 'Wheat Bread', 1, 20000, 20000),
 
 -- Order 4: Dewi (Office Chair)
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-004'), (SELECT id FROM public.products WHERE sku = 'FURN-001'), 'Office Chair', 1, 1200000, 1200000),
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-004'), (SELECT id FROM public.products WHERE kode_produk = 'FURN-001'), 'Office Chair', 1, 1200000, 1200000),
 
 -- Order 5: Hendra (Laptop Pro)
-((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-005'), (SELECT id FROM public.products WHERE sku = 'ELEC-002'), 'Laptop Pro', 1, 15000000, 15000000);
+((SELECT id FROM public.orders WHERE order_number = 'ORD-TEST-005'), (SELECT id FROM public.products WHERE kode_produk = 'ELEC-002'), 'Laptop Pro', 1, 15000000, 15000000);
+

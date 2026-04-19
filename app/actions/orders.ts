@@ -78,7 +78,8 @@ export async function createOrder(formData: FormData) {
   const supabase = createAdminClient()
 
   // Generate order number
-  const orderNumber = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
+  // Gunakan random ID untuk menghindari duplikat order number
+  const orderNumber = `ORD-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
   const order = {
     order_number: orderNumber,
@@ -109,7 +110,7 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
 
   // customer_id is now optional
   if (!payload.items || payload.items.length === 0) {
-    return { success: false, error: 'No items in order' }
+    return { success: false, error: 'Tidak ada item dalam pesanan' }
   }
 
   // Validate stock availability
@@ -130,7 +131,7 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
   for (const item of payload.items) {
     const available = stockMap.get(item.product_id) ?? 0
     if (item.quantity > available) {
-      return { success: false, error: `Insufficient stock for product ${item.product_name}` }
+      return { success: false, error: `Stok tidak cukup untuk produk: ${item.product_name}` }
     }
   }
 
@@ -141,35 +142,11 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
   })
   const total_amount = itemsWithSubtotal.reduce((sum, i) => sum + i.subtotal, 0)
 
-  // Create order first and get id
-  const orderNumber = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
-  const orderRow = {
-    order_number: orderNumber,
-    customer_id: payload.customer_id || null, // Handle undefined/null
-    total_amount,
-    discount: 0,
-    tax: 0,
-    status: 'completed' as const,
-    payment_status: 'paid' as const,
-    payment_method: payload.payment_method,
-    notes: payload.notes || null,
-  }
+  // Create order via stored procedure (atomicity)
+  const orderNumber = `ORD-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
-  const { data: insertedOrders, error: insertOrderError } = await supabase
-    .from('orders')
-    .insert([orderRow])
-    .select('id, order_number')
-    .limit(1)
-
-  if (insertOrderError || !insertedOrders || insertedOrders.length === 0) {
-    return { success: false, error: insertOrderError?.message || 'Failed to create order' }
-  }
-
-  const order_id = insertedOrders[0].id as string
-
-  // Insert order items
-  const orderItems = itemsWithSubtotal.map((i) => ({
-    order_id,
+  // Persiapkan payload items untuk RPC
+  const rpcItems = itemsWithSubtotal.map((i) => ({
     product_id: i.product_id,
     product_name: i.product_name,
     quantity: i.quantity,
@@ -177,32 +154,38 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
     subtotal: i.subtotal,
   }))
 
-  const { error: itemsError } = await supabase.from('order_items').insert(orderItems)
-  if (itemsError) {
-    return { success: false, error: itemsError.message }
+  const { data: rpcResult, error: rpcError } = await supabase.rpc('create_order_transaction', {
+    p_order_number: orderNumber,
+    p_customer_id: payload.customer_id || null,
+    p_total_amount: total_amount,
+    p_payment_method: payload.payment_method,
+    p_notes: payload.notes || null,
+    p_items: rpcItems
+  })
+
+  if (rpcError) {
+    return { success: false, error: rpcError.message || 'Transaksi gagal pada stored procedure' }
   }
 
-  // Decrement stock for each product
+  // Handle expected RPC format
+  const parsedResult = typeof rpcResult === 'string' ? JSON.parse(rpcResult) : rpcResult
+  if (!parsedResult?.success) {
+    return { success: false, error: parsedResult?.error || 'Gagal menyimpan transaksi' }
+  }
+
+  const order_id = parsedResult.order_id
+
+  // Cek dan kirim alert stok menipis secara terpisah, tidak ikut dalam transaksi atomik karena
+  // melibatkan email third party/side effects.
+  const { getSettings } = await import('@/app/actions/settings')
+  const settings = await getSettings()
+  const threshold = settings.lowStockThreshold || 8
+
   for (const item of payload.items) {
     const newStock = (stockMap.get(item.product_id) || 0) - item.quantity
-    const { error: updError } = await supabase
-      .from('products')
-      .update({ stock: newStock })
-      .eq('id', item.product_id)
-
-    if (updError) {
-      return { success: false, error: updError.message }
-    }
-
-    // Check for low stock alert
-    // Fetch settings to get dynamic threshold
-    const { getSettings } = await import('@/app/actions/settings') // Dynamic import to avoid circular dep if any
-    const settings = await getSettings()
-    const threshold = settings.lowStockThreshold || 8
-
     if (newStock <= threshold) {
-      // Allow this to fail silently so it doesn't block the order
-      await sendLowStockEmail(item.product_name, newStock).catch(console.error)
+      // Send email logic (did not await strictly to not block the response)
+      sendLowStockEmail(item.product_name, newStock).catch(console.error)
     }
   }
 
@@ -288,7 +271,13 @@ export async function getOrderById(id: string) {
         *,
         products (
           name,
-          sku
+          kode_produk
+        ),
+        order_item_batches (
+            quantity,
+            product_batches (
+                expiry_date
+            )
         )
       )
     `)

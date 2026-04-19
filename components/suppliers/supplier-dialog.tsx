@@ -141,176 +141,151 @@ export function SupplierDialog({
     }
   }
 
-  const handleDelete = async () => {
-    if (!supplier) return
-
-    try {
-      setLoading(true)
-      const { error } = await supabase
-        .from('suppliers')
-        .delete()
-        .eq('id', supplier.id)
-
-      if (error) throw error
-
-      toast.success('Supplier deleted successfully')
-      onOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error('Error deleting supplier:', error)
-      toast.error('Failed to delete supplier')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>{supplier ? 'Edit Pemasok' : 'Tambah Pemasok Baru'}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-bold text-gray-900">{supplier ? 'Edit Pemasok' : 'Tambah Pemasok Baru'}</DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
               {supplier ? 'Perbarui detail pemasok di bawah ini.' : 'Isi detail untuk menambahkan pemasok baru.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 py-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nama *</Label>
+                <Label htmlFor="name" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Nama Pemasok *</Label>
                 <Input
                   id="name"
-                  placeholder="Nama pemasok"
+                  placeholder="Contoh: PT Sumber Makmur"
                   {...register('name')}
-                  className={errors.name ? 'border-red-500' : ''}
+                  className={`bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all ${errors.name ? 'border-red-500' : ''}`}
                 />
                 {errors.name && (
                   <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">Kontak Person</Label>
+                <Label htmlFor="contact_person" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Kontak Person</Label>
                 <Input
                   id="contact_person"
-                  placeholder="Nama kontak person"
+                  placeholder="Nama narahubung"
                   {...register('contact_person')}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="email@contoh.com"
                   {...register('email')}
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={`bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all ${errors.email ? 'border-red-500' : ''}`}
                 />
                 {errors.email && (
                   <p className="text-sm text-red-500">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Telepon</Label>
+                <Label htmlFor="phone" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Telepon</Label>
                 <Input
                   id="phone"
-                  placeholder="Nomor telepon"
+                  placeholder="Contoh: 08123456789"
                   {...register('phone')}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Alamat</Label>
+              <Label htmlFor="address" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Alamat Lengkap</Label>
               <Input
                 id="address"
-                placeholder="Alamat jalan"
+                placeholder="Alamat jalan atau gedung"
                 {...register('address')}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">Kota</Label>
+                <Label htmlFor="city" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Kota</Label>
                 <Input
                   id="city"
                   placeholder="Kota"
                   {...register('city')}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="state">Provinsi</Label>
+                <Label htmlFor="state" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Provinsi</Label>
                 <Input
                   id="state"
                   placeholder="Provinsi"
                   {...register('state')}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="zip_code">Kode Pos</Label>
+                <Label htmlFor="zip_code" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Kode Pos</Label>
                 <Input
                   id="zip_code"
                   placeholder="Kode Pos"
                   {...register('zip_code')}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tax_number">NPWP</Label>
+              <Label htmlFor="tax_number" className="text-gray-700 text-xs uppercase tracking-wider font-bold">NPWP</Label>
               <Input
                 id="tax_number"
-                placeholder="Nomor NPWP/Pajak"
+                placeholder="Nomor NPWP / Pajak perusahaan"
                 {...register('tax_number')}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Catatan</Label>
+              <Label htmlFor="notes" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Catatan</Label>
               <Textarea
                 id="notes"
-                placeholder="Catatan tambahan"
+                placeholder="Keterangan tambahan atau rincian spesifik tentang pemasok..."
                 {...register('notes')}
                 rows={3}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 rounded-xl transition-all pt-3"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Status Pemasok</Label>
               <select
                 id="status"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-11 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 text-gray-900"
                 {...register('status')}
               >
-                <option value="active">Aktif</option>
+                <option value="active">Aktif beroperasi</option>
                 <option value="inactive">Nonaktif</option>
               </select>
             </div>
           </div>
-          <DialogFooter className="mt-4">
-            {supplier && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-                className="mr-auto"
-              >
-                Hapus
-              </Button>
-            )}
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50"
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Menyimpan...' : 'Simpan'}
+            <Button type="submit" disabled={loading} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-xl shadow-md shadow-emerald-500/20">
+              {loading ? 'Menyimpan...' : 'Simpan Pemasok'}
             </Button>
           </DialogFooter>
         </form>

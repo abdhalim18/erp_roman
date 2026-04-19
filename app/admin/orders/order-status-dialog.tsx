@@ -59,38 +59,38 @@ export function OrderStatusDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl">
                 <DialogHeader>
-                    <DialogTitle>Update Order Status</DialogTitle>
-                    <DialogDescription>
-                        Change the status of this order. This may trigger notifications to the customer.
+                    <DialogTitle className="text-xl font-bold text-gray-900">Ubah Status Pesanan</DialogTitle>
+                    <DialogDescription className="text-sm text-gray-500">
+                        Perbarui status pesanan ini. Hal ini dapat memicu notifikasi jika diaktifkan.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="status" className="text-right">
-                            Status
+                <div className="grid gap-5 py-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="status" className="text-gray-700 text-xs uppercase tracking-wider font-bold">
+                            Pilih Status Baru
                         </Label>
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select status" />
+                            <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:ring-emerald-500 h-11 rounded-xl w-full">
+                                <SelectValue placeholder="Pilih status" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="processing">Processing</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectContent className="rounded-xl border-gray-100 shadow-lg">
+                                <SelectItem value="pending" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Pending / Menunggu</SelectItem>
+                                <SelectItem value="processing" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Diproses</SelectItem>
+                                <SelectItem value="completed" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Selesai</SelectItem>
+                                <SelectItem value="cancelled" className="rounded-lg focus:bg-red-50 focus:text-red-900 cursor-pointer">Dibatalkan</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                        Cancel
+                <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-gray-100 pt-6">
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading} className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50">
+                        Batal
                     </Button>
-                    <Button onClick={handleSave} disabled={loading}>
+                    <Button onClick={handleSave} disabled={loading} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-xl shadow-md shadow-emerald-500/20">
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Changes
+                        Simpan Status
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -23,6 +23,7 @@ import {
 import { createProduct, updateProduct, type Product, getCategoriesForSelect } from '@/app/actions/products'
 import { Loader2 } from 'lucide-react'
 import { formatRupiah, parseRupiah } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface ProductDialogProps {
   open: boolean
@@ -63,10 +64,11 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
     setLoading(true)
     setError('')
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(form)
 
     // Convert formatted values back to numbers
     const priceValue = parseRupiah(price)
@@ -81,13 +83,14 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
         : await updateProduct(product!.id, formData)
 
       if (result.success) {
+        toast.success(mode === 'create' ? 'Produk berhasil ditambahkan' : 'Produk berhasil diperbarui')
         onOpenChange(false)
-        e.currentTarget.reset()
+        form.reset()
       } else {
         setError(result.error || 'An error occurred')
       }
-    } catch {
-      setError('Terjadi kesalahan yang tidak terduga')
+    } catch (err: any) {
+      setError(err?.message || String(err) || 'Terjadi kesalahan yang tidak terduga')
     } finally {
       setLoading(false)
     }
@@ -95,106 +98,93 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Tambah Produk Baru' : 'Edit Produk'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-bold text-gray-900">{mode === 'create' ? 'Tambah Produk Baru' : 'Edit Produk'}</DialogTitle>
+          <DialogDescription className="text-sm text-gray-500">
             {mode === 'create'
-              ? 'Isi detail untuk menambahkan produk baru ke inventaris Anda'
-              : 'Perbarui informasi produk'}
+              ? 'Isi rincian produk baru untuk menambahkannya ke sistem inventaris Anda.'
+              : 'Perbarui rincian dan harga produk.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Nama
-              </Label>
+        <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Nama Produk *</Label>
               <Input
                 id="name"
                 name="name"
+                placeholder="Contoh: Vitamin Sapi"
                 defaultValue={product?.name}
-                className="col-span-3"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 required
               />
             </div>
-
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="description" className="text-right mt-2">
-                Deskripsi
-              </Label>
-              <Textarea
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Deskripsi Tambahan</Label>
+              <Input
                 id="description"
                 name="description"
+                placeholder="Rincian deskripsi singkat"
                 defaultValue={product?.description || ''}
-                className="col-span-3"
-                rows={3}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category_id" className="text-right">
-                Kategori
-              </Label>
-              {isLoadingCategories ? (
-                <div className="col-span-3 flex items-center justify-center p-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : (
-                <div className="col-span-3">
-                  <Select
-                    name="category_id"
-                    defaultValue={product?.category_id || undefined}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="sku" className="text-right">
-                SKU
-              </Label>
-              <Input
-                id="sku"
-                name="sku"
-                defaultValue={product?.sku}
-                className="col-span-3"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="unit" className="text-right">
-                Satuan
-              </Label>
-              <div className="col-span-3">
-                <Input
-                  id="unit"
-                  name="unit"
-                  defaultValue={product?.unit || 'unit'}
-                  disabled={loading}
-                  placeholder="misalnya: unit, kg, liter"
-                />
-              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-5">
             <div className="space-y-2">
-              <Label htmlFor="price">Harga *</Label>
+              <Label htmlFor="category_id" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Kategori</Label>
+              {isLoadingCategories ? (
+                <div className="flex items-center justify-center h-11 bg-gray-50 rounded-xl border border-gray-100">
+                  <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                </div>
+              ) : (
+                <Select name="category_id" defaultValue={product?.category_id || undefined}>
+                  <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:ring-emerald-500 h-11 rounded-xl w-full">
+                    <SelectValue placeholder="Pilih kategori" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-gray-100 shadow-lg">
+                    <SelectItem value="none" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Tidak ada (Umum)</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id} className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="kode_produk" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Kode Produk *</Label>
+              <Input
+                id="kode_produk"
+                name="kode_produk"
+                placeholder="SKU-XXX"
+                defaultValue={product?.kode_produk}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Satuan</Label>
+              <Input
+                id="unit"
+                name="unit"
+                defaultValue={product?.unit || 'unit'}
+                disabled={loading}
+                placeholder="misalnya: dus, kg, pcs"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-5 p-4 bg-gray-50/50 border border-gray-100 rounded-xl">
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Harga Jual *</Label>
               <Input
                 id="price"
                 name="price"
@@ -210,12 +200,13 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 }}
                 required
                 disabled={loading}
-                placeholder="0"
+                placeholder="Rp 0"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all font-semibold"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cost">Modal</Label>
+              <Label htmlFor="cost" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Harga Modal (Beli)</Label>
               <Input
                 id="cost"
                 name="cost"
@@ -230,27 +221,31 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                   setCost(value || '')
                 }}
                 disabled={loading}
-                placeholder="0"
+                placeholder="Rp 0"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="stock">Stok *</Label>
-              <Input
-                id="stock"
-                name="stock"
-                type="number"
-                min="0"
-                defaultValue={product?.stock || 0}
-                required
-                disabled={loading}
-              />
-            </div>
+          <div className={`grid ${mode === 'create' ? 'grid-cols-4' : 'grid-cols-2'} gap-5`}>
+            {mode === 'create' && (
+              <div className="space-y-2">
+                <Label htmlFor="stock" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Stok Awal *</Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  min="0"
+                  defaultValue={0}
+                  required
+                  disabled={loading}
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
-              <Label htmlFor="min_stock">Stok Min</Label>
+              <Label htmlFor="min_stock" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Stok Minimal Alert</Label>
               <Input
                 id="min_stock"
                 name="min_stock"
@@ -258,53 +253,57 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 min="0"
                 defaultValue={product?.min_stock || 10}
                 disabled={loading}
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
+              <Label htmlFor="status" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Status *</Label>
               <Select name="status" defaultValue={product?.status || 'active'} disabled={loading}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:ring-emerald-500 h-11 rounded-xl w-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Aktif</SelectItem>
-                  <SelectItem value="inactive">Nonaktif</SelectItem>
-                  <SelectItem value="discontinued">Dihentikan</SelectItem>
+                <SelectContent className="rounded-xl border-gray-100 shadow-lg">
+                  <SelectItem value="active" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Aktif Dijual</SelectItem>
+                  <SelectItem value="inactive" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Disembunyikan</SelectItem>
+                  <SelectItem value="discontinued" className="rounded-lg focus:bg-red-50 focus:text-red-900 cursor-pointer">Dihentikan (Expired)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="expiry_date">Tanggal Kedaluwarsa</Label>
-              <Input
-                id="expiry_date"
-                name="expiry_date"
-                type="date"
-                defaultValue={product?.expiry_date ? new Date(product.expiry_date).toISOString().split('T')[0] : ''}
-                disabled={loading}
-              />
-            </div>
+            {mode === 'create' && (
+              <div className="space-y-2">
+                <Label htmlFor="expiry_date" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Tgl Kadaluwarsa</Label>
+                <Input
+                  id="expiry_date"
+                  name="expiry_date"
+                  type="date"
+                  disabled={loading}
+                  className="bg-white border-gray-200 text-gray-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+                />
+              </div>
+            )}
           </div>
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">
               {error}
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-gray-100 pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 h-11"
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'create' ? 'Tambah Produk' : 'Perbarui Produk'}
+            <Button type="submit" disabled={loading} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-xl shadow-md shadow-emerald-500/20 h-11 px-8 items-center flex">
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {mode === 'create' ? 'Tambah Produk' : 'Simpan Perubahan'}
             </Button>
           </DialogFooter>
         </form>

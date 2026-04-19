@@ -27,3 +27,15 @@ export async function getUser() {
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
+
+/**
+ * Ambil peran pengguna yang sedang login.
+ * Role disimpan di user_metadata.role saat pembuatan akun.
+ * Default ke 'admin' jika tidak ada (untuk backward compatibility).
+ */
+export async function getUserRole(): Promise<'admin' | 'cashier'> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 'cashier'
+  return (user.user_metadata?.role || 'admin') as 'admin' | 'cashier'
+}

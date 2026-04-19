@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { revalidatePath } from 'next/cache'
 
 export type Category = {
   id: string
@@ -11,7 +13,7 @@ export type Category = {
 }
 
 export async function getCategories(): Promise<{ categories: Category[]; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('categories')
     .select('*')
@@ -24,7 +26,7 @@ export async function getCategories(): Promise<{ categories: Category[]; error: 
 }
 
 export async function getCategory(id: string): Promise<{ category: Category | null; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('categories')
     .select('*')
@@ -38,7 +40,7 @@ export async function getCategory(id: string): Promise<{ category: Category | nu
 }
 
 export async function createCategory(formData: FormData): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from('categories')
     .insert([{
@@ -49,11 +51,12 @@ export async function createCategory(formData: FormData): Promise<{ success: boo
   if (error) {
     return { success: false, error: error.message }
   }
+  revalidatePath('/admin/categories')
   return { success: true, error: null }
 }
 
 export async function updateCategory(id: string, formData: FormData): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from('categories')
     .update({
@@ -66,11 +69,12 @@ export async function updateCategory(id: string, formData: FormData): Promise<{ 
   if (error) {
     return { success: false, error: error.message }
   }
+  revalidatePath('/admin/categories')
   return { success: true, error: null }
 }
 
 export async function deleteCategory(id: string): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from('categories')
     .delete()
@@ -79,5 +83,6 @@ export async function deleteCategory(id: string): Promise<{ success: boolean; er
   if (error) {
     return { success: false, error: error.message }
   }
+  revalidatePath('/admin/categories')
   return { success: true, error: null }
 }
