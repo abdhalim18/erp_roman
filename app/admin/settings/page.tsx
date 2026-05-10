@@ -1,34 +1,34 @@
 import { getSettings } from '@/app/actions/settings'
+import { getPaymentMethods } from '@/app/actions/payment_methods'
 import { SettingsForm } from './settings-form-component'
-import { Settings } from 'lucide-react'
+import { Metadata } from 'next'
+import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = {
+    title: 'Pengaturan ERP | Toko Roman',
+    description: 'Konfigurasi sistem, profil, dan hak akses',
+}
 
 export default async function SettingsPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const settings = await getSettings()
+    const { data: paymentMethods } = await getPaymentMethods()
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Pengaturan</h1>
-                <p className="text-sm text-gray-500 mt-0.5">Kelola konfigurasi dan preferensi toko Anda</p>
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Pengaturan Sistem Dasar</h1>
+                <p className="text-sm text-gray-500 mt-0.5">Kelola parameter operasional, informasi kontak, dan sistem keamanan ERP Anda.</p>
             </div>
 
-            {/* Settings Card */}
-            <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm">
-                        <Settings className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-semibold text-gray-800">Konfigurasi Toko</p>
-                        <p className="text-xs text-gray-400">Informasi umum dan pengaturan notifikasi</p>
-                    </div>
-                </div>
-
-                <div className="px-6 py-6">
-                    <SettingsForm initialSettings={settings} />
-                </div>
-            </div>
+            {/* Form Logic holds the Tabs Layout */}
+            <SettingsForm 
+                initialSettings={settings} 
+                user={user} 
+                initialPaymentMethods={paymentMethods || []} 
+            />
         </div>
     )
 }

@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export type Shift = {
   id: string
@@ -20,6 +20,7 @@ export type Shift = {
 
 /** Ambil daftar shift yang sedang aktif (status = 'open') untuk user yang login */
 export async function getActiveShifts(): Promise<{ shifts: Shift[]; error: string | null }> {
+  noStore()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { shifts: [], error: 'Tidak terautentikasi' }
@@ -41,6 +42,7 @@ export async function getActiveShifts(): Promise<{ shifts: Shift[]; error: strin
 
 /** Ambil histori shift terbaru */
 export async function getShiftHistory(limit = 10): Promise<{ shifts: Shift[]; error: string | null }> {
+  noStore()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { shifts: [], error: 'Tidak terautentikasi' }
@@ -50,6 +52,20 @@ export async function getShiftHistory(limit = 10): Promise<{ shifts: Shift[]; er
     .from('shifts')
     .select('*')
     .eq('cashier_id', user.id)
+    .order('opened_at', { ascending: false })
+    .limit(limit)
+
+  if (error) return { shifts: [], error: error.message }
+  return { shifts: (data as Shift[]) || [], error: null }
+}
+
+/** Ambil semua histori shift dari semua kasir untuk Admin */
+export async function getAllShifts(limit = 50): Promise<{ shifts: Shift[]; error: string | null }> {
+  noStore()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('shifts')
+    .select('*')
     .order('opened_at', { ascending: false })
     .limit(limit)
 
@@ -67,10 +83,21 @@ export async function getShiftSales(openedAt: string): Promise<{ cash: number; n
     .eq('status', 'completed')
     .gte('created_at', openedAt)
 
+  // Ambil data payment methods untuk mengecek mana yang is_cash
+  const { getPaymentMethods } = await import('@/app/actions/payment_methods')
+  const { data: pmData } = await getPaymentMethods()
+  
+  const cashMethods = new Set((pmData || []).filter(pm => pm.is_cash).map(pm => pm.id))
+  // Default fallback: kalau stringnya 'cash' anggap tunai
+  cashMethods.add('cash')
+
   let cash = 0
   let nonCash = 0
   for (const order of data || []) {
-    if (order.payment_method === 'cash') {
+    if (order.payment_method && cashMethods.has(order.payment_method)) {
+      cash += order.total_amount || 0
+    } else if (!order.payment_method) {
+      // Jika null, fallback ke cash (legacy support)
       cash += order.total_amount || 0
     } else {
       nonCash += order.total_amount || 0
@@ -80,7 +107,7 @@ export async function getShiftSales(openedAt: string): Promise<{ cash: number; n
   return { cash, nonCash }
 }
 
-/** Buka shift baru (User bisa memiliki lebih dari 1 shift aktif berdasarkan feedback terbaru) */
+/** Buka shift baru (Harus tutup shift aktif terlebih dahulu sebelum buka baru) */
 export async function openShift(
   openingBalance: number,
   notes?: string
@@ -89,10 +116,20 @@ export async function openShift(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Tidak terautentikasi' }
 
-  // Berdasarkan feedback: "bisa punya lebih dari satu shift tanpa tutup shift dulu"
-  // Jadi cek shift tidak melakukan block (dihapus).
-
   const admin = createAdminClient()
+
+  // Cek apakah user masih memiliki shift yang sedang terbuka
+  const { data: activeShifts, error: checkError } = await admin
+    .from('shifts')
+    .select('id')
+    .eq('cashier_id', user.id)
+    .eq('status', 'open')
+
+  if (checkError) return { success: false, error: checkError.message }
+  if (activeShifts && activeShifts.length > 0) {
+    return { success: false, error: 'Anda masih memiliki shift yang sedang aktif. Silakan tutup terlebih dahulu.' }
+  }
+
   const { data, error } = await admin
     .from('shifts')
     .insert([{
@@ -108,6 +145,7 @@ export async function openShift(
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/cashier/shift')
+  revalidatePath('/admin/shifts')
   return { success: true, shift: data as Shift }
 }
 
@@ -132,7 +170,7 @@ export async function closeShift(
   const { cash, nonCash } = await getShiftSales(openedAt)
 
   const admin = createAdminClient()
-  const { error } = await admin
+  const { error, count } = await admin
     .from('shifts')
     .update({
       status: 'closed',
@@ -147,6 +185,19 @@ export async function closeShift(
 
   if (error) return { success: false, error: error.message }
 
+  // Verifikasi bahwa baris benar-benar diupdate
+  // Jika 0 baris terupdate, berarti shiftId tidak ditemukan atau cashier_id tidak cocok
+  const { data: verify } = await admin
+    .from('shifts')
+    .select('status')
+    .eq('id', shiftId)
+    .single()
+
+  if (!verify || verify.status !== 'closed') {
+    return { success: false, error: 'Gagal menutup shift. Pastikan shift ini milik akun Anda.' }
+  }
+
   revalidatePath('/cashier/shift')
+  revalidatePath('/admin/shifts')
   return { success: true }
 }

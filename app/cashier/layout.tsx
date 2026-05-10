@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/app/actions/auth'
 import { getSettings } from '@/app/actions/settings'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { CashierHeader } from '@/components/cashier/cashier-header'
 
 import { CashierSidebar } from '@/components/cashier/cashier-sidebar'

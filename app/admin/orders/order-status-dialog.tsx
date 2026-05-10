@@ -20,6 +20,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { updateOrderStatus } from '@/app/actions/orders'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface OrderStatusDialogProps {
     open: boolean
@@ -44,14 +45,15 @@ export function OrderStatusDialog({
         try {
             const result = await updateOrderStatus(orderId, status)
             if (result.success) {
+                toast.success('Status penjualan berhasil diperbarui')
                 onOpenChange(false)
                 if (onSuccess) onSuccess()
             } else {
-                alert('Failed to update status: ' + result.error)
+                toast.error('Gagal memperbarui status: ' + result.error)
             }
         } catch (error) {
             console.error('Error updating status:', error)
-            alert('An error occurred while updating status')
+            toast.error('Terjadi kesalahan saat memperbarui status')
         } finally {
             setLoading(false)
         }
@@ -61,9 +63,9 @@ export function OrderStatusDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-gray-900">Ubah Status Pesanan</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-gray-900">Ubah Status Penjualan</DialogTitle>
                     <DialogDescription className="text-sm text-gray-500">
-                        Perbarui status pesanan ini. Hal ini dapat memicu notifikasi jika diaktifkan.
+                        Perbarui status penjualan ini. Hal ini dapat memicu notifikasi jika diaktifkan.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-5 py-6">

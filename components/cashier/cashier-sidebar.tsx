@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
     LayoutDashboard,
@@ -9,7 +9,9 @@ import {
     ClipboardList,
     Search,
     Users,
+    LogOut,
 } from 'lucide-react'
+import { logout } from '@/app/actions/auth'
 
 const menuItems = [
     { title: 'Transaksi', href: '/cashier', icon: LayoutDashboard },
@@ -21,6 +23,13 @@ const menuItems = [
 
 export function CashierSidebar() {
     const pathname = usePathname()
+    const router = useRouter()
+
+    const handleLogout = async () => {
+        await logout()
+        router.push('/login')
+        router.refresh()
+    }
 
     return (
         <aside className="w-60 bg-white border-r border-gray-100 min-h-[calc(100vh-65px)] hidden md:flex flex-col">
@@ -47,8 +56,15 @@ export function CashierSidebar() {
                 })}
             </nav>
 
-            <div className="px-4 py-4 border-t border-gray-100">
-                <p className="text-[10px] text-gray-400 text-center tracking-wide">Toko Roman · Kasir</p>
+            <div className="px-3 py-3 border-t border-gray-100 flex flex-col gap-2">
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors w-full text-left"
+                >
+                    <LogOut className="h-4 w-4 shrink-0" />
+                    <span>Keluar</span>
+                </button>
+                <p className="text-[10px] text-gray-400 text-center tracking-wide mt-1">Toko Roman · Kasir</p>
             </div>
         </aside>
     )

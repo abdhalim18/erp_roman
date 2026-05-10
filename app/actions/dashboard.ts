@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getSettings } from '@/app/actions/settings'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export type DashboardStats = {
     totalRevenue: number
@@ -22,7 +23,8 @@ export type DashboardStats = {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-    const supabase = await createClient()
+    noStore()
+    const supabase = createAdminClient()
 
     // Execute all independent queries in parallel
     const [
@@ -144,11 +146,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export type ChartData = {
     date: string
     pendapatan: number
-    laba: number
 }
 
 export async function getDashboardCharts(): Promise<ChartData[]> {
-    const supabase = await createClient()
+    noStore()
+    const supabase = createAdminClient()
 
     // 1. Get orders from last 30 days
     const thirtyDaysAgo = new Date()
@@ -161,15 +163,7 @@ export async function getDashboardCharts(): Promise<ChartData[]> {
         .select(`
             id,
             created_at,
-            total_amount,
-            order_items (
-                quantity,
-                unit_price,
-                product_id,
-                products (
-                    cost
-                )
-            )
+            total_amount
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
         .or('payment_status.eq.paid,payment_status.eq.partial')
@@ -181,39 +175,27 @@ export async function getDashboardCharts(): Promise<ChartData[]> {
     }
 
     // 2. Group by date and calculate totals
-    const dailyMap = new Map<string, { revenue: number, profit: number }>()
+    const dailyMap = new Map<string, { revenue: number }>()
 
     // Initialize last 30 days with 0 to show empty days
     for (let i = 0; i < 30; i++) {
         const d = new Date()
         d.setDate(d.getDate() - i)
         const dateStr = d.toLocaleDateString('en-CA') // YYYY-MM-DD
-        dailyMap.set(dateStr, { revenue: 0, profit: 0 })
+        dailyMap.set(dateStr, { revenue: 0 })
     }
 
     orders?.forEach(order => {
         const dateStr = new Date(order.created_at).toLocaleDateString('en-CA')
 
-        let orderRevenue = 0
-        let orderCost = 0
+        // Use the actual total_amount from the order which includes discounts and tax correctly
+        const orderRevenue = order.total_amount || 0
 
-        // Supabase mengembalikan tipe join yang kompleks, gunakan any secara eksplisit
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        order.order_items.forEach((item: Record<string, any>) => {
-            const qty = item.quantity || 0
-            const price = item.unit_price || 0
-            const cost = Array.isArray(item.products) ? (item.products[0]?.cost || 0) : (item.products?.cost || 0)
-
-            orderRevenue += (price * qty)
-            orderCost += (cost * qty)
-        })
-
-        const current = dailyMap.get(dateStr) || { revenue: 0, profit: 0 }
+        const current = dailyMap.get(dateStr) || { revenue: 0 }
 
         // Accumulate
         dailyMap.set(dateStr, {
-            revenue: current.revenue + orderRevenue,
-            profit: current.profit + (orderRevenue - orderCost)
+            revenue: current.revenue + orderRevenue
         })
     })
 
@@ -222,11 +204,10 @@ export async function getDashboardCharts(): Promise<ChartData[]> {
         .map(([date, stats]) => ({
             date: new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), // Format for display
             originalDate: date, // Keep for sorting
-            pendapatan: stats.revenue,
-            laba: stats.profit
+            pendapatan: stats.revenue
         }))
         .sort((a, b) => a.originalDate.localeCompare(b.originalDate))
-        .map(({ date, pendapatan, laba }) => ({ date, pendapatan, laba }))
+        .map(({ date, pendapatan }) => ({ date, pendapatan }))
 
     return chartData
 }
@@ -242,7 +223,8 @@ export type ExpiringBatch = {
 }
 
 export async function getExpiringBatches(daysThreshold = 30): Promise<ExpiringBatch[]> {
-    const supabase = await createClient()
+    noStore()
+    const supabase = createAdminClient()
 
     // Ambil batch yang akan kadaluarsa DALAM daysThreshold hari ke depan
     // Termasuk yang SUDAH kadaluarsa (days_to_expiry < 0) agar admin bisa tindak lanjut

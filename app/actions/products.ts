@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export type Product = {
   id: string
@@ -30,6 +30,7 @@ export type ProductWithCategory = Product & {
 }
 
 export async function getProducts() {
+  noStore()
   const supabase = createAdminClient() // ← fix: pakai adminClient, import sudah di atas
 
   const { data, error } = await supabase
@@ -71,6 +72,7 @@ export async function getCategoriesForSelect() {
   const { data, error } = await supabase
     .from('categories')
     .select('id, name')
+    .eq('status', 'active')
     .order('name', { ascending: true })
 
   if (error) {

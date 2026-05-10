@@ -71,7 +71,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-sm">
+              <DropdownMenuItem onClick={() => router.push('/admin/settings')} className="gap-2 text-sm cursor-pointer">
                 <UserIcon className="h-3.5 w-3.5 text-gray-400" />
                 <span>Profil</span>
               </DropdownMenuItem>

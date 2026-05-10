@@ -16,23 +16,28 @@ interface ShiftClientProps {
 }
 
 export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: ShiftClientProps) {
-  const [modalAwal, setModalAwal] = useState('')
+  const [modalAwal, setModalAwal] = useState('0')
   const [setoranAkhir, setSetoranAkhir] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errorBuka, setErrorBuka] = useState('')
+  const [filter, setFilter] = useState<'all' | 'daily' | 'weekly'>('all')
   
   const [isPending, startTransition] = useTransition()
 
   // Untuk form buka shift
   const handleOpenShift = () => {
-    if (!modalAwal) return toast.error('Isi nominal modal awal')
+    if (modalAwal === '') return setErrorBuka('Isi nominal modal awal')
     const balance = parseInt(modalAwal)
-    if (isNaN(balance) || balance < 0) return toast.error('Nominal tidak valid')
+    if (isNaN(balance) || balance < 0) return setErrorBuka('Nominal tidak valid')
+
+    setErrorBuka('')
 
     startTransition(async () => {
       const res = await openShift(balance)
       if (res.success) {
         toast.success('Shift berhasil dibuka')
-        setModalAwal('')
+        setModalAwal('0')
       } else {
         toast.error(res.error || 'Gagal membuka shift')
       }
@@ -42,10 +47,16 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
   // Untuk tutup shift spesifik
   const handleCloseShift = (shiftId: string) => {
     const closingStr = setoranAkhir[shiftId]
-    if (!closingStr) return toast.error('Isi nominal setoran akhir kas')
+    if (closingStr === undefined || closingStr === '') {
+      return setErrors({ ...errors, [shiftId]: 'Isi nominal setoran akhir kas' })
+    }
     
     const balance = parseInt(closingStr)
-    if (isNaN(balance) || balance < 0) return toast.error('Nominal tidak valid')
+    if (isNaN(balance) || balance < 0) {
+      return setErrors({ ...errors, [shiftId]: 'Nominal tidak valid' })
+    }
+
+    setErrors({ ...errors, [shiftId]: '' })
 
     startTransition(async () => {
       const res = await closeShift(shiftId, balance, notes[shiftId])
@@ -64,6 +75,20 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
     acc.nonCash += s.nonCash
     return acc
   }, { cash: 0, nonCash: 0 })
+
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const filteredHistory = historyShifts.filter(s => {
+    const shiftDate = new Date(s.opened_at)
+    if (filter === 'daily') {
+      return shiftDate >= today
+    } else if (filter === 'weekly') {
+      return shiftDate >= weekAgo
+    }
+    return true
+  })
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto md:mx-0">
@@ -105,39 +130,44 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
       </div>
 
       {/* Cards - Buka Shift Area */}
-      <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden mb-6">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm">
-            <PlayCircle className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Buka Shift Baru</p>
-            <p className="text-xs text-gray-400">Modal awal kas laci</p>
-          </div>
-        </div>
-        <div className="px-5 py-4 flex flex-col md:flex-row gap-4 items-end">
-          <div className="space-y-1.5 flex-1 w-full">
-            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-              Nominal Modal Awal
-            </Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                className="pl-10 h-10 border-gray-200"
-                placeholder="0"
-                value={modalAwal}
-                onChange={(e) => setModalAwal(e.target.value)}
-                type="number"
-                disabled={isPending}
-              />
+      {initialActiveShifts.length === 0 && (
+        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden mb-6">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm">
+              <PlayCircle className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Buka Shift Baru</p>
+              <p className="text-xs text-gray-400">Modal awal kas laci</p>
             </div>
           </div>
-          <Button onClick={handleOpenShift} disabled={isPending} className="w-full md:w-auto h-10 gap-2">
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-            Buka Shift
-          </Button>
+          <div className="px-5 py-4 flex flex-col md:flex-row gap-4 items-end">
+            <div className="space-y-1.5 flex-1 w-full">
+              <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                Nominal Modal Awal
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  className="pl-10 h-10 border-gray-200"
+                  placeholder="0"
+                  value={modalAwal}
+                  onChange={(e) => setModalAwal(e.target.value)}
+                  type="number"
+                  disabled={isPending}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col w-full md:w-auto">
+              <Button onClick={handleOpenShift} disabled={isPending} className="h-10 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0">
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+                Buka Shift
+              </Button>
+              {errorBuka && <p className="text-xs text-red-500 font-medium mt-1.5 absolute -bottom-6">{errorBuka}</p>}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Active Shifts List */}
       {initialActiveShifts.length > 0 && (
@@ -164,6 +194,10 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
                     <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200">
                       <span className="text-gray-500">Total Penjualan Tunai</span>
                       <span className="font-bold text-emerald-600">{formatRupiah(salesMap[shift.id]?.cash || 0)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200">
+                      <span className="text-gray-500">Total Penjualan Non-Tunai</span>
+                      <span className="font-bold text-blue-600">{formatRupiah(salesMap[shift.id]?.nonCash || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200">
                       <span className="text-gray-500">Total Seharusnya d Laci</span>
@@ -211,6 +245,11 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
                     {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <StopCircle className="h-4 w-4" />}
                     Simpan Laporan Akhir
                   </Button>
+                  {errors[shift.id] && (
+                    <p className="text-xs text-red-500 font-medium text-center mt-1.5 animate-in fade-in slide-in-from-top-1">
+                      {errors[shift.id]}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -221,7 +260,29 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
       {/* History */}
       {historyShifts.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-bold tracking-tight text-gray-800 mb-4">Riwayat Shift Anda</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <h2 className="text-lg font-bold tracking-tight text-gray-800">Riwayat Shift Anda</h2>
+          <div className="flex items-center gap-1 bg-white border border-emerald-100 rounded-lg p-1 self-start sm:self-auto shadow-sm">
+              <button 
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${filter === 'all' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
+              >
+                Semua
+              </button>
+              <button 
+                onClick={() => setFilter('daily')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${filter === 'daily' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
+              >
+                Hari Ini
+              </button>
+              <button 
+                onClick={() => setFilter('weekly')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${filter === 'weekly' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
+              >
+                Minggu Ini
+              </button>
+            </div>
+          </div>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">
@@ -230,32 +291,42 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
                   <th className="px-4 py-3 font-semibold">Waktu Ditutup</th>
                   <th className="px-4 py-3 font-semibold text-right">Modal Awal</th>
                   <th className="px-4 py-3 font-semibold text-right">Total Tunai</th>
+                  <th className="px-4 py-3 font-semibold text-right">Total Non-Tunai</th>
                   <th className="px-4 py-3 font-semibold text-right">Setoran Kasir</th>
                   <th className="px-4 py-3 font-semibold text-right">Selisih</th>
                   <th className="px-4 py-3 font-semibold text-center">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {historyShifts.map(s => {
-                  const selisih = (s.closing_balance || 0) - (s.opening_balance + s.total_cash_sales)
-                  return (
-                    <tr key={s.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{new Date(s.opened_at).toLocaleString('id-ID')}</td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{s.closed_at ? new Date(s.closed_at).toLocaleString('id-ID') : '-'}</td>
-                      <td className="px-4 py-3 text-gray-900 text-right font-medium">{formatRupiah(s.opening_balance)}</td>
-                      <td className="px-4 py-3 text-emerald-600 text-right font-bold">{formatRupiah(s.total_cash_sales)}</td>
-                      <td className="px-4 py-3 text-gray-900 text-right font-medium">{s.closing_balance !== null ? formatRupiah(s.closing_balance) : '-'}</td>
-                      <td className={`px-4 py-3 text-right font-bold ${selisih < 0 ? 'text-red-500' : selisih > 0 ? 'text-blue-500' : 'text-gray-400'}`}>
-                        {s.closing_balance !== null ? (selisih > 0 ? '+' : '') + formatRupiah(selisih) : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase ${s.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {s.status}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {filteredHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-gray-500 text-sm">
+                      Belum ada data shift untuk rentang waktu ini.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredHistory.map(s => {
+                    const selisih = (s.closing_balance || 0) - (s.opening_balance + s.total_cash_sales)
+                    return (
+                      <tr key={s.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{new Date(s.opened_at).toLocaleString('id-ID')}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{s.closed_at ? new Date(s.closed_at).toLocaleString('id-ID') : '-'}</td>
+                        <td className="px-4 py-3 text-gray-900 text-right font-medium">{formatRupiah(s.opening_balance)}</td>
+                        <td className="px-4 py-3 text-emerald-600 text-right font-bold">{formatRupiah(s.total_cash_sales || 0)}</td>
+                        <td className="px-4 py-3 text-blue-600 text-right font-bold">{formatRupiah(s.total_noncash_sales || 0)}</td>
+                        <td className="px-4 py-3 text-gray-900 text-right font-medium">{s.closing_balance !== null ? formatRupiah(s.closing_balance) : '-'}</td>
+                        <td className={`px-4 py-3 text-right font-bold ${selisih < 0 ? 'text-red-500' : selisih > 0 ? 'text-blue-500' : 'text-gray-400'}`}>
+                          {s.closing_balance !== null ? (selisih > 0 ? '+' : '') + formatRupiah(selisih) : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase ${s.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {s.status}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>

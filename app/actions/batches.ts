@@ -1,7 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export type ProductBatch = {
   id: string
@@ -9,16 +9,20 @@ export type ProductBatch = {
   quantity: number
   cost: number | null
   expiry_date: string | null
+  purchase_date: string | null
+  supplier_id: string | null
+  suppliers?: { name: string } | null
   created_at: string
   updated_at: string
 }
 
 export async function getProductBatches(productId: string): Promise<{ batches: ProductBatch[]; error: string | null }> {
+  noStore()
   const supabase = createAdminClient()
   
   const { data, error } = await supabase
     .from('product_batches')
-    .select('*')
+    .select('*, suppliers(name)')
     .eq('product_id', productId)
     .filter('quantity', 'gt', 0)
     .order('expiry_date', { ascending: true, nullsFirst: false })
@@ -38,16 +42,20 @@ export async function addProductBatch(formData: FormData): Promise<{ success: bo
   const quantity = parseInt(formData.get('quantity') as string)
   const cost = formData.get('cost') ? parseFloat(formData.get('cost') as string) : null
   const expiryDate = formData.get('expiry_date') as string || null
+  const purchaseDate = formData.get('purchase_date') as string || null
+  const supplierId = formData.get('supplier_id') as string || null
 
-  if (!productId || isNaN(quantity) || quantity <= 0) {
-    return { success: false, error: 'Product ID or valid quantity is missing' }
+  if (!productId || isNaN(quantity) || quantity <= 0 || !expiryDate) {
+    return { success: false, error: 'Product ID, valid quantity, or expiry date is missing' }
   }
 
   const batch = {
     product_id: productId,
     quantity,
     cost,
-    expiry_date: expiryDate
+    expiry_date: expiryDate,
+    purchase_date: purchaseDate,
+    supplier_id: supplierId || null
   }
 
   const { error } = await supabase
@@ -93,9 +101,11 @@ export async function editProductBatch(formData: FormData): Promise<{ success: b
   const quantity = parseInt(formData.get('quantity') as string)
   const cost = formData.get('cost') ? parseFloat(formData.get('cost') as string) : null
   const expiryDate = formData.get('expiry_date') as string || null
+  const purchaseDate = formData.get('purchase_date') as string || null
+  const supplierId = formData.get('supplier_id') as string || null
 
-  if (!batchId || !productId || isNaN(quantity) || quantity < 0) {
-    return { success: false, error: 'Terdapat data yang tidak valid' }
+  if (!batchId || !productId || isNaN(quantity) || quantity < 0 || !expiryDate) {
+    return { success: false, error: 'Terdapat data yang tidak valid, pastikan semua kolom yang diperlukan terisi' }
   }
 
   const { error } = await supabase
@@ -103,7 +113,9 @@ export async function editProductBatch(formData: FormData): Promise<{ success: b
     .update({ 
       quantity, 
       cost, 
-      expiry_date: expiryDate 
+      expiry_date: expiryDate,
+      purchase_date: purchaseDate,
+      supplier_id: supplierId || null
     })
     .eq('id', batchId)
 

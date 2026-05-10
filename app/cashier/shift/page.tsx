@@ -8,7 +8,7 @@ export default async function ShiftReportPage() {
   if (!user) redirect('/login')
 
   const { shifts: activeShifts } = await getActiveShifts()
-  const { shifts: historyShifts } = await getShiftHistory(10)
+  const { shifts: historyShifts } = await getShiftHistory(50)
 
   // Fetch sales for active shifts if any
   // Format is { [shiftId]: { cash: number, nonCash: number } }

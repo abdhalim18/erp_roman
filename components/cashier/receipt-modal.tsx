@@ -23,6 +23,8 @@ interface ReceiptModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   storeName: string
+  storeAddress?: string
+  storePhone?: string
   orderNumber: string
   date: string
   items: ReceiptItem[]
@@ -31,12 +33,15 @@ interface ReceiptModalProps {
   cashReceived?: number
   cashChange?: number
   cashierName?: string
+  customerName?: string
 }
 
 export function ReceiptModal({
   open,
   onOpenChange,
   storeName,
+  storeAddress,
+  storePhone,
   orderNumber,
   date,
   items,
@@ -44,7 +49,8 @@ export function ReceiptModal({
   paymentMethod,
   cashReceived,
   cashChange,
-  cashierName = 'Kasir'
+  cashierName = 'Kasir',
+  customerName
 }: ReceiptModalProps) {
 
   const handlePrint = () => {
@@ -62,16 +68,22 @@ export function ReceiptModal({
         <div id="receipt-content" className="bg-white p-4 font-mono text-sm text-gray-800 flex flex-col print:absolute print:inset-0 print:m-0 print:p-0 print:border-none print:-translate-y-[60px]">
           <div className="text-center mb-4">
             <h2 className="font-bold text-xl uppercase tracking-widest">{storeName}</h2>
-            <p className="text-xs text-gray-500 mt-1">Struk Pembelian</p>
+            {storeAddress && <p className="text-[11px] text-gray-600 mt-1 leading-tight">{storeAddress}</p>}
+            {storePhone && <p className="text-[11px] text-gray-600 leading-tight">Telp: {storePhone}</p>}
+            <p className="text-[10px] text-gray-500 mt-2 border-t border-dashed border-gray-300 pt-2 inline-block">Struk Pembelian</p>
           </div>
 
           <div className="flex justify-between text-xs mb-1">
             <span>No: {orderNumber}</span>
             <span>Kasir: {cashierName}</span>
           </div>
-          <div className="text-xs mb-4 border-b border-dashed border-gray-300 pb-2">
+          <div className="text-xs mb-1">
             Waktu: {new Date(date).toLocaleString('id-ID')}
           </div>
+          <div className="text-xs mb-4">
+            Pelanggan: {customerName || 'Tamu'}
+          </div>
+          <div className="border-b border-dashed border-gray-300 pb-2 mb-2"></div>
 
           {/* Items */}
           <div className="space-y-3 border-b border-dashed border-gray-300 pb-4 mb-2">
@@ -94,10 +106,10 @@ export function ReceiptModal({
 
           <div className="flex justify-between text-xs mb-1">
             <span>Metode Pembayaran</span>
-            <span className="uppercase">{paymentMethod === 'cash' ? 'Tunai' : paymentMethod === 'qris' ? 'QRIS' : 'Transfer'}</span>
+            <span className="uppercase">{paymentMethod}</span>
           </div>
 
-          {paymentMethod === 'cash' && cashReceived !== undefined && (
+          {cashReceived !== undefined && (
             <>
               <div className="flex justify-between text-xs mb-1">
                 <span>Tunai</span>

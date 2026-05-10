@@ -1,7 +1,11 @@
 import { ProductsClient } from './products-client'
 import { getProducts } from '@/app/actions/products'
+import { unstable_noStore as noStore } from 'next/cache'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ProductsPage() {
+  noStore()
   const { products } = await getProducts()
 
   // Calculate statistics

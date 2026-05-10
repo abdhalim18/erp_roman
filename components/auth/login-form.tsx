@@ -27,7 +27,14 @@ export function LoginForm() {
       const result = await login(email, password)
 
       if (result.error) {
-        setError(result.error)
+        // Terjemahkan pesan error Supabase ke Indonesia
+        const errorMap: Record<string, string> = {
+          'Invalid login credentials': 'Email atau kata sandi salah',
+          'Email not confirmed': 'Email belum dikonfirmasi',
+          'User not found': 'Pengguna tidak ditemukan',
+          'Too many requests': 'Terlalu banyak percobaan, coba lagi nanti',
+        }
+        setError(errorMap[result.error] || result.error)
         setLoading(false)
         return
       }

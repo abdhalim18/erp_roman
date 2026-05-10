@@ -61,6 +61,10 @@ export default function CategoriesPage() {
   }, [searchTerm, categories])
 
   const promptDeleteCategory = (category: Category) => {
+    if ((category.product_count ?? 0) > 0) {
+      toast.error(`Kategori tidak bisa dihapus karena sedang digunakan oleh ${category.product_count} produk.`)
+      return
+    }
     setCategoryToDelete(category)
     setDeleteDialogOpen(true)
   }
@@ -87,6 +91,7 @@ export default function CategoriesPage() {
       const formData = new FormData()
       formData.append('name', categoryData.name)
       if (categoryData.description) formData.append('description', categoryData.description)
+      if (categoryData.status) formData.append('status', categoryData.status)
       const result = categoryData.id
         ? await updateCategory(categoryData.id, formData)
         : await createCategory(formData)
@@ -149,6 +154,7 @@ export default function CategoriesPage() {
               <tr className="border-b border-gray-100 bg-gray-50/60">
                 <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nama</th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Deskripsi</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dibuat</th>
                 <th className="px-5 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
               </tr>
@@ -181,7 +187,18 @@ export default function CategoriesPage() {
                 filteredCategories.map((category) => (
                   <tr key={category.id} className="hover:bg-gray-50/80 transition-colors">
                     <td className="px-5 py-3.5 text-sm font-semibold text-gray-900">{category.name}</td>
-                    <td className="px-4 py-3.5 text-sm text-gray-500">{category.description || '—'}</td>
+                    <td className="px-4 py-3.5 text-sm text-gray-500">
+                      {category.description || <span className="text-gray-300 italic text-xs">Tidak ada deskripsi</span>}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        (!category.status || category.status === 'active') 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'bg-gray-100 text-gray-600 border border-gray-200'
+                      }`}>
+                        {(!category.status || category.status === 'active') ? 'Aktif' : 'Nonaktif'}
+                      </span>
+                    </td>
                     <td className="px-4 py-3.5 text-xs text-gray-400">
                       {new Date(category.created_at).toLocaleDateString('id-ID')}
                     </td>
@@ -198,9 +215,10 @@ export default function CategoriesPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                           onClick={() => promptDeleteCategory(category)}
-                          disabled={isDeleting === category.id}
+                          disabled={isDeleting === category.id || (category.product_count ?? 0) > 0}
+                          title={(category.product_count ?? 0) > 0 ? `Digunakan oleh ${category.product_count} produk` : "Hapus Kategori"}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

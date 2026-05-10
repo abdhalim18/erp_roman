@@ -1,5 +1,6 @@
 import { getUsers } from '@/app/actions/users'
 import { UserDialog } from '@/components/users/user-dialog'
+import { EditUserDialog } from '@/components/users/edit-user-dialog'
 import { Badge } from '@/components/ui/badge'
 import { DeleteUserButton } from './delete-user-button'
 import { Shield, UserCog, Users } from 'lucide-react'
@@ -124,7 +125,14 @@ export default async function UsersPage() {
                                                 : 'Belum pernah'}
                                         </td>
                                         <td className="px-5 py-3.5 text-right">
-                                            <DeleteUserButton userId={user.id} />
+                                            <div className="flex items-center justify-end gap-1">
+                                                <EditUserDialog
+                                                    userId={user.id}
+                                                    userEmail={user.email || ''}
+                                                    currentRole={user.role}
+                                                />
+                                                <DeleteUserButton userId={user.id} />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

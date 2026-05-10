@@ -20,11 +20,11 @@ export async function sendLowStockEmail(productName: string, currentStock: numbe
         await resend.emails.send({
             from: 'Toko Roman <onboarding@resend.dev>',
             to: toEmail,
-            subject: `Low Stock Alert: ${productName}`,
+            subject: `Peringatan Stok Menipis: ${productName}`,
             html: `
-        <h1>Low Stock Warning</h1>
-        <p>The stock for <strong>${productName}</strong> has dropped to <strong>${currentStock}</strong> pcs.</p>
-        <p>Please restock soon.</p>
+        <h1>Peringatan Stok Menipis</h1>
+        <p>Stok untuk produk <strong>${productName}</strong> saat ini telah menyentuh batas minimum, tersisa <strong>${currentStock}</strong> unit.</p>
+        <p>Mohon segera lakukan penambahan stok barang.</p>
       `,
         });
         console.log(`Low stock email sent for ${productName} to ${toEmail}`);

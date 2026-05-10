@@ -1,0 +1,28 @@
+{
+  "methods": [
+    {
+      "id": "cash",
+      "name": "Tunai",
+      "is_cash": true,
+      "status": "active"
+    },
+    {
+      "id": "transfer",
+      "name": "Transfer Bank",
+      "is_cash": false,
+      "status": "active"
+    },
+    {
+      "id": "qris",
+      "name": "QRIS",
+      "is_cash": false,
+      "status": "active"
+    },
+    {
+      "id": "tes",
+      "name": "tes",
+      "is_cash": true,
+      "status": "inactive"
+    }
+  ]
+}

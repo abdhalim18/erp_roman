@@ -1,23 +1,51 @@
-import { getProducts, type Product } from '@/app/actions/products'
+import { getProducts } from '@/app/actions/products'
 import { getCustomersForSelect } from '@/app/actions/orders'
+import { getSettings } from '@/app/actions/settings'
+import { getPaymentMethods } from '@/app/actions/payment_methods'
+import { getUserRole } from '@/app/actions/auth'
 import POSNewOrder from './pos-client'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Transaksi Penjualan Baru | Toko Roman',
+  description: 'Buat transaksi order baru',
+}
+
+export const dynamic = 'force-dynamic'
 
 export default async function NewOrderPage() {
-  const { products } = await getProducts()
-  const { customers } = await getCustomersForSelect()
+  const [{ products }, { customers }, settings, { data: paymentMethods }, role] = await Promise.all([
+    getProducts(),
+    getCustomersForSelect(),
+    getSettings(),
+    getPaymentMethods(),
+    getUserRole()
+  ])
 
-  const activeProducts = (products || []).filter((p) => p.status === 'active')
+  // Hanya tampilkan produk yang aktif dan sisa stoknya lebih dari 0
+  const availableProducts = (products || []).filter(
+    (p) => p.status === 'active' && p.stock > 0
+  )
+
+  const cashierName = role === 'admin' ? 'Admin' : 'Kasir'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Transaksi Baru</h1>
-          <p className="text-gray-600 mt-2">Buat pesanan baru dari stok yang tersedia</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Kasir Transaksi Baru</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Buat data penjualan baru secara langsung</p>
       </div>
 
-      <POSNewOrder products={activeProducts as Product[]} customers={customers || []} />
+      <POSNewOrder 
+        products={availableProducts} 
+        customers={customers || []} 
+        lowStockThreshold={settings.lowStockThreshold}
+        paymentMethods={(paymentMethods || []).filter(m => m.status === 'active')}
+        storeName={settings.storeName}
+        storeAddress={settings.storeAddress}
+        storePhone={settings.storePhone}
+        cashierName={cashierName}
+      />
     </div>
   )
 }

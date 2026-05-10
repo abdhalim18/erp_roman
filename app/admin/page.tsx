@@ -20,6 +20,9 @@ import { Badge } from '@/components/ui/badge'
 import { getDashboardStats, getDashboardCharts, getExpiringBatches } from '@/app/actions/dashboard'
 import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { Clock } from 'lucide-react'
+import { unstable_noStore as noStore } from 'next/cache'
+
+export const dynamic = 'force-dynamic'
 
 const quickActions = [
   {
@@ -32,8 +35,8 @@ const quickActions = [
     text: 'text-indigo-600',
   },
   {
-    title: 'Pesanan Baru',
-    description: 'Buat pesanan penjualan baru',
+    title: 'Penjualan Baru',
+    description: 'Buat transaksi penjualan baru',
     icon: <ShoppingCart className="h-5 w-5" />,
     href: '/admin/orders/new',
     color: 'from-violet-500 to-purple-500',
@@ -61,6 +64,7 @@ const quickActions = [
 ]
 
 export default async function AdminDashboard() {
+  noStore()
   const stats = await getDashboardStats()
   const chartData = await getDashboardCharts()
   const expiringBatches = await getExpiringBatches(30)
@@ -104,7 +108,7 @@ export default async function AdminDashboard() {
         <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Pesanan</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Penjualan</p>
               <p className="mt-2 text-xl font-bold text-gray-900">{stats.totalOrders}</p>
               <div className="mt-1 flex items-center gap-2">
                 <span className="text-xs text-amber-500 font-medium">{stats.pendingOrders} tertunda</span>

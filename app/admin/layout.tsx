@@ -5,6 +5,9 @@ import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { RealtimeStockAlert } from '@/components/admin/realtime-stock-alert'
 import { getSettings } from '@/app/actions/settings'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function AdminLayout({
   children,
 }: {

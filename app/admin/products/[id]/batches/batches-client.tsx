@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-export function BatchesClient({ product, initialBatches }: { product: any, initialBatches: ProductBatch[] }) {
+export function BatchesClient({ product, initialBatches, suppliers }: { product: any, initialBatches: ProductBatch[], suppliers: any[] }) {
   const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,6 +35,8 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
   const [quantity, setQuantity] = useState('1')
   const [cost, setCost] = useState(product.cost ? product.cost.toString() : '0')
   const [expiryDate, setExpiryDate] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState('')
+  const [supplierId, setSupplierId] = useState('')
 
   const handleOpenDialog = (batch?: ProductBatch) => {
     if (batch) {
@@ -42,11 +44,15 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
       setQuantity(batch.quantity.toString())
       setCost(batch.cost ? batch.cost.toString() : '0')
       setExpiryDate(batch.expiry_date ? batch.expiry_date.split('T')[0] : '')
+      setPurchaseDate(batch.purchase_date ? batch.purchase_date.split('T')[0] : '')
+      setSupplierId(batch.supplier_id || '')
     } else {
       setEditingBatch(null)
       setQuantity('1')
       setCost(product.cost ? product.cost.toString() : '0')
       setExpiryDate('')
+      setPurchaseDate('')
+      setSupplierId('')
     }
     setIsDialogOpen(true)
   }
@@ -86,6 +92,8 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
     formData.append('quantity', quantity)
     if (cost) formData.append('cost', parseRupiah(cost).toString())
     if (expiryDate) formData.append('expiry_date', expiryDate)
+    if (purchaseDate) formData.append('purchase_date', purchaseDate)
+    if (supplierId) formData.append('supplier_id', supplierId)
 
     if (editingBatch) formData.append('batch_id', editingBatch.id)
 
@@ -163,6 +171,8 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
               <thead>
                 <tr className="border-b bg-gray-50">
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tgl. Masuk Dibuat</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tgl. Beli</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Supplier</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tgl. Kedaluwarsa</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Harga Modal / Unit</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Sisa Kuantitas</th>
@@ -185,6 +195,12 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
                     <tr key={batch.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {new Date(batch.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {batch.purchase_date ? new Date(batch.purchase_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric'}) : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {batch.suppliers?.name || '-'}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium">
                         {batch.expiry_date ? (
@@ -279,16 +295,44 @@ export function BatchesClient({ product, initialBatches }: { product: any, initi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="expiry_date" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Tanggal Kadaluwarsa (Opsional)</Label>
+                <Label htmlFor="purchase_date" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Tanggal Beli</Label>
+                <Input
+                  id="purchase_date"
+                  type="date"
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
+                  disabled={loading}
+                  className="bg-white border-gray-200 text-gray-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="supplier_id" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Supplier</Label>
+                <select
+                  id="supplier_id"
+                  value={supplierId}
+                  onChange={(e) => setSupplierId(e.target.value)}
+                  disabled={loading}
+                  className="w-full bg-white border border-gray-200 text-gray-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl px-3 transition-all outline-none"
+                >
+                  <option value="">-- Pilih Supplier --</option>
+                  {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiry_date" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Tanggal Kadaluwarsa *</Label>
                 <Input
                   id="expiry_date"
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
                   disabled={loading}
+                  required
                   className="bg-white border-gray-200 text-gray-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 />
-                <p className="text-xs text-gray-400 mt-1">Kosongkan jika barang ini tidak memiliki expired time.</p>
               </div>
             </div>
 

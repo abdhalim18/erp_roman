@@ -102,11 +102,23 @@ export async function createOrder(formData: FormData) {
   }
 
   revalidatePath('/admin/orders')
+  revalidatePath('/cashier/history')
   return { success: true, error: null }
 }
 
 export async function createOrderWithItems(payload: CreateOrderPayload): Promise<{ success: boolean; error?: string; order_id?: string; order_number?: string }> {
   const supabase = createAdminClient()
+
+  // Cek shift aktif untuk kasir (admin bypass)
+  const { getUserRole } = await import('@/app/actions/auth')
+  const role = await getUserRole()
+  if (role === 'cashier') {
+    const { getActiveShifts } = await import('@/app/actions/shifts')
+    const { shifts } = await getActiveShifts()
+    if (!shifts || shifts.length === 0) {
+      return { success: false, error: 'Anda harus membuka shift terlebih dahulu sebelum membuat transaksi.' }
+    }
+  }
 
   // customer_id is now optional
   if (!payload.items || payload.items.length === 0) {
@@ -191,6 +203,9 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
 
   revalidatePath('/admin/orders')
   revalidatePath('/admin/products')
+  revalidatePath('/admin')
+  revalidatePath('/admin/reports')
+  revalidatePath('/cashier/history')
   return { success: true, order_id, order_number: orderNumber }
 }
 
@@ -234,6 +249,7 @@ export async function updateOrder(id: string, formData: FormData) {
   }
 
   revalidatePath('/admin/orders')
+  revalidatePath('/cashier/history')
   return { success: true, error: null }
 }
 
@@ -251,6 +267,7 @@ export async function deleteOrder(id: string) {
   }
 
   revalidatePath('/admin/orders')
+  revalidatePath('/cashier/history')
   return { success: true, error: null }
 }
 
@@ -271,7 +288,7 @@ export async function getOrderById(id: string) {
         *,
         products (
           name,
-          kode_produk
+          product_code
         ),
         order_item_batches (
             quantity,
@@ -306,5 +323,8 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
   revalidatePath('/admin/orders')
   revalidatePath(`/admin/orders/${orderId}`)
+  revalidatePath('/admin')
+  revalidatePath('/admin/reports')
+  revalidatePath('/cashier/history')
   return { success: true, error: null }
 }

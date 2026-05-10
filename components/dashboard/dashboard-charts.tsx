@@ -65,7 +65,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
         return (
             <Card className="border border-gray-100 shadow-sm">
                 <CardHeader>
-                    <CardTitle className="text-base font-semibold text-gray-700">Pendapatan &amp; Laba</CardTitle>
+                    <CardTitle className="text-base font-semibold text-gray-700">Grafik Pendapatan</CardTitle>
                     <CardDescription>Tidak ada data tersedia untuk 30 hari terakhir</CardDescription>
                 </CardHeader>
             </Card>
@@ -74,9 +74,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
     // Summary stats
     const totalRevenue = data.reduce((s, d) => s + d.pendapatan, 0)
-    const totalProfit = data.reduce((s, d) => s + d.laba, 0)
-    const margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0'
-    const positiveMargin = parseFloat(margin) >= 0
 
     // Only show some X-axis ticks to avoid crowding
     const tickInterval = Math.max(1, Math.floor(data.length / 8))
@@ -92,7 +89,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <CardTitle className="text-base font-semibold text-gray-800">
-                            Pendapatan &amp; Laba
+                            Grafik Pendapatan
                         </CardTitle>
                         <CardDescription className="text-xs text-gray-400 mt-0.5">
                             30 hari terakhir · diperbarui otomatis
@@ -125,30 +122,10 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 </div>
 
                 {/* Mini Summary Stats */}
-                <div className="grid grid-cols-3 gap-3 mt-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100/60">
-                        <p className="text-[10px] font-medium text-blue-500 uppercase tracking-widest">Total Pendapatan</p>
+                <div className="mt-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100/60 max-w-sm">
+                        <p className="text-[10px] font-medium text-blue-500 uppercase tracking-widest">Total Pendapatan (30 Hari)</p>
                         <p className="text-sm font-bold text-blue-900 mt-1">{formatRupiah(totalRevenue)}</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100/60">
-                        <p className="text-[10px] font-medium text-emerald-600 uppercase tracking-widest">Total Laba</p>
-                        <p className="text-sm font-bold text-emerald-900 mt-1">{formatRupiah(totalProfit)}</p>
-                    </div>
-                    <div className={`rounded-xl p-3 border ${positiveMargin
-                        ? 'bg-gradient-to-br from-violet-50 to-purple-50 border-violet-100/60'
-                        : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-100/60'
-                        }`}>
-                        <p className={`text-[10px] font-medium uppercase tracking-widest ${positiveMargin ? 'text-violet-500' : 'text-red-500'}`}>
-                            Margin
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                            {positiveMargin
-                                ? <TrendingUp className="h-3 w-3 text-emerald-500" />
-                                : <TrendingDown className="h-3 w-3 text-red-500" />}
-                            <p className={`text-sm font-bold ${positiveMargin ? 'text-violet-900' : 'text-red-900'}`}>
-                                {margin}%
-                            </p>
-                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -161,10 +138,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                                 <linearGradient id="gradPendapatan" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
                                     <stop offset="100%" stopColor="#818cf8" stopOpacity={0.7} />
-                                </linearGradient>
-                                <linearGradient id="gradLaba" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                                    <stop offset="100%" stopColor="#34d399" stopOpacity={0.7} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid
@@ -199,13 +172,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                                 radius={[5, 5, 0, 0]}
                                 maxBarSize={32}
                             />
-                            <Bar
-                                dataKey="laba"
-                                name="Laba"
-                                fill="url(#gradLaba)"
-                                radius={[5, 5, 0, 0]}
-                                maxBarSize={32}
-                            />
                         </BarChart>
                     ) : (
                         <AreaChart data={displayData}>
@@ -213,10 +179,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                                 <linearGradient id="areaPendapatan" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
                                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="areaLaba" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid
@@ -251,16 +213,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                                 stroke="#6366f1"
                                 strokeWidth={2.5}
                                 fill="url(#areaPendapatan)"
-                                dot={false}
-                                activeDot={{ r: 5, strokeWidth: 0 }}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="laba"
-                                name="Laba"
-                                stroke="#10b981"
-                                strokeWidth={2.5}
-                                fill="url(#areaLaba)"
                                 dot={false}
                                 activeDot={{ r: 5, strokeWidth: 0 }}
                             />

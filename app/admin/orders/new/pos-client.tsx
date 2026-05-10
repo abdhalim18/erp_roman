@@ -8,14 +8,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CustomerDialog } from '@/components/customers/customer-dialog'
 import { type Product } from '@/app/actions/products'
 import { createOrderWithItems } from '@/app/actions/orders'
-import { Loader2, Plus, Minus, Trash2, Search, ShoppingCart, Package, CheckCircle2, AlertCircle } from 'lucide-react'
-import { formatRupiah } from '@/lib/utils'
+import { Loader2, Plus, Minus, Trash2, Search, ShoppingCart, Package, CheckCircle2, AlertCircle, ChevronDown } from 'lucide-react'
+import { formatRupiah, cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { ReceiptModal } from '@/components/cashier/receipt-modal'
+import { type PaymentMethod } from '@/app/actions/payment_methods'
 
 type POSNewOrderProps = {
   products: Product[]
   customers: { id: string; name: string; email: string | null }[]
+  lowStockThreshold?: number
+  paymentMethods: PaymentMethod[]
+  storeName?: string
+  storeAddress?: string
+  storePhone?: string
+  cashierName?: string
 }
 
 type CartItem = {
@@ -28,12 +35,13 @@ type CartItem = {
   earliest_expiry_date?: string | null
 }
 
-export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
+export default function POSNewOrder({ products, customers, lowStockThreshold = 8, paymentMethods, storeName = 'Toko Roman', storeAddress, storePhone, cashierName = 'Kasir' }: POSNewOrderProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [cart, setCart] = useState<CartItem[]>([])
   const [customerId, setCustomerId] = useState<string>('')
-  const [paymentMethod, setPaymentMethod] = useState<string>('cash')
+  const [paymentMethod, setPaymentMethod] = useState<string>(paymentMethods.find(m => m.is_cash)?.id || paymentMethods[0]?.id || '')
   const [notes, setNotes] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [submitting, startTransition] = useTransition()
@@ -42,18 +50,54 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
   const [cashReceived, setCashReceived] = useState<number>(0)
   const [receiptOpen, setReceiptOpen] = useState(false)
   const [receiptData, setReceiptData] = useState<any>(null)
+  
+  // Custom Customer Dropdown States
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false)
+  const [customerSearchText, setCustomerSearchText] = useState('')
+
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearchText.trim()) return customers
+    const lower = customerSearchText.toLowerCase()
+    return customers.filter(c => 
+      c.name.toLowerCase().includes(lower) || 
+      (c.email && c.email.toLowerCase().includes(lower))
+    )
+  }, [customers, customerSearchText])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerDropdownOpen) {
+        const target = e.target as HTMLElement
+        if (!target.closest('.customer-dropdown-container')) {
+          setCustomerDropdownOpen(false)
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [customerDropdownOpen])
 
   useEffect(() => {
     if (!createOpen) router.refresh()
   }, [createOpen, router])
 
+  const categories = useMemo(() => {
+    return Array.from(new Set(products.map(p => p.category_name).filter(Boolean))) as string[]
+  }, [products])
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return products
-    return products.filter(
+    let filteredProducts = products
+
+    if (selectedCategory !== 'all') {
+      filteredProducts = filteredProducts.filter(p => p.category_name === selectedCategory)
+    }
+
+    if (!q) return filteredProducts
+    return filteredProducts.filter(
       (p) => p.name.toLowerCase().includes(q) || p.kode_produk.toLowerCase().includes(q)
     )
-  }, [search, products])
+  }, [search, selectedCategory, products])
 
   const addToCart = (p: Product) => {
     setCart((prev) => {
@@ -101,9 +145,12 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
   const totalDiscount = useMemo(() => cart.reduce((sum, i) => sum + i.discount, 0), [cart])
   const total = useMemo(() => Math.max(0, subtotal - totalDiscount), [subtotal, totalDiscount])
 
+  const selectedMethod = useMemo(() => paymentMethods.find(m => m.id === paymentMethod), [paymentMethods, paymentMethod])
+  const isCashMethod = selectedMethod?.is_cash ?? false
+
   const canCheckout = cart.length > 0
     && cart.every((i) => i.quantity <= i.maxStock)
-    && (paymentMethod !== 'cash' || cashReceived >= total)
+    && (!isCashMethod || cashReceived >= total)
 
   const handleCheckout = () => {
     setError('')
@@ -136,13 +183,14 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
           name: i.product_name,
           quantity: i.quantity,
           price: i.unit_price,
-          subtotal: Math.max(0, (i.unit_price * i.quantity) - i.discount)
-        })),
-        totalAmount: total,
-        paymentMethod,
-        cashReceived: paymentMethod === 'cash' ? cashReceived : undefined,
-        cashChange: paymentMethod === 'cash' ? Math.max(0, cashReceived - total) : undefined
-      })
+        subtotal: Math.max(0, (i.unit_price * i.quantity) - i.discount)
+      })),
+      totalAmount: total,
+      paymentMethod: selectedMethod?.name || paymentMethod,
+      cashReceived: isCashMethod ? cashReceived : undefined,
+      cashChange: isCashMethod ? Math.max(0, cashReceived - total) : undefined,
+      customerName: customers.find(c => c.id === customerId)?.name || (!customerId || customerId === 'guest' ? 'Tamu' : undefined)
+    })
 
       setSuccess(`Pesanan ${res.order_number} berhasil dibuat!`)
       setReceiptOpen(true)
@@ -151,7 +199,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
       setCart([])
       setNotes('')
       setCustomerId('')
-      setPaymentMethod('cash')
+      setPaymentMethod(paymentMethods.find(m => m.is_cash)?.id || paymentMethods[0]?.id || '')
       setCashReceived(0)
     })
   }
@@ -173,14 +221,29 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
             <p className="text-sm font-semibold text-gray-800">Pilih Produk</p>
             <p className="text-xs text-gray-400">{filtered.length} produk tersedia</p>
           </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <Input
-              className="pl-9 h-8 text-sm border-gray-200"
-              placeholder="Cari produk..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-48">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Input
+                className="pl-9 h-8 text-sm border-gray-200"
+                placeholder="Cari produk..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-40">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-8 text-xs border-gray-200">
+                  <SelectValue placeholder="Semua Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -224,7 +287,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                           isOutOfStock
                             ? 'bg-red-50 text-red-600 border border-red-200'
-                            : p.stock <= 8
+                            : p.stock <= lowStockThreshold
                               ? 'bg-orange-50 text-orange-600 border border-orange-200'
                               : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                         }`}>
@@ -388,19 +451,67 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
             <div>
               <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Pelanggan</Label>
               <div className="flex gap-1.5">
-                <Select value={customerId} onValueChange={setCustomerId}>
-                  <SelectTrigger className="h-8 text-xs border-gray-200 flex-1">
-                    <SelectValue placeholder="Tamu" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="guest">Tamu</SelectItem>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name} {c.email ? `(${c.email})` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative flex-1 customer-dropdown-container">
+                  <button
+                    type="button"
+                    className="flex h-8 w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-xs ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+                  >
+                    <span className="truncate">
+                      {customerId === 'guest' || !customerId
+                        ? 'Tamu'
+                        : customers.find(c => c.id === customerId)?.name || 'Tamu'}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+                  </button>
+                  
+                  {customerDropdownOpen && (
+                    <div className="absolute bottom-full mb-1 z-50 w-full overflow-hidden rounded-md border border-gray-200 bg-white shadow-md flex flex-col">
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+                          <Input
+                            autoFocus
+                            placeholder="Cari pelanggan..."
+                            className="h-7 pl-7 text-[11px] border-gray-200 focus-visible:ring-emerald-500"
+                            value={customerSearchText}
+                            onChange={(e) => setCustomerSearchText(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="overflow-y-auto p-1 max-h-48 flex-1">
+                        <div 
+                          className={cn("flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none hover:bg-gray-100", (customerId === 'guest' || !customerId) ? "bg-gray-50 font-medium" : "")}
+                          onClick={() => {
+                            setCustomerId('guest')
+                            setCustomerDropdownOpen(false)
+                            setCustomerSearchText('')
+                          }}
+                        >
+                          Tamu
+                        </div>
+                        {filteredCustomers.map(c => (
+                          <div 
+                            key={c.id}
+                            className={cn("flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none hover:bg-gray-100", customerId === c.id ? "bg-gray-50 font-medium" : "")}
+                            onClick={() => {
+                              setCustomerId(c.id)
+                              setCustomerDropdownOpen(false)
+                              setCustomerSearchText('')
+                            }}
+                          >
+                            <span className="truncate">{c.name} {c.email ? <span className="text-gray-400 text-[10px]">({c.email})</span> : ''}</span>
+                          </div>
+                        ))}
+                        {filteredCustomers.length === 0 && (
+                          <div className="px-2 py-3 text-center text-[10px] text-gray-500">
+                            Pelanggan tidak ditemukan
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <Button
                   type="button"
                   variant="outline"
@@ -421,15 +532,20 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">💵 Tunai</SelectItem>
-                  <SelectItem value="card">💳 Kartu</SelectItem>
-                  <SelectItem value="transfer">📱 Transfer</SelectItem>
+                  {paymentMethods.length === 0 && (
+                    <SelectItem value="none" disabled>Belum ada metode</SelectItem>
+                  )}
+                  {paymentMethods.map(method => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.is_cash ? '💵' : '💳'} {method.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Cash Received (Kembalian) - Hanya tampil jika metode = cash */}
-            {paymentMethod === 'cash' && (
+            {/* Cash Received (Kembalian) - Hanya tampil jika metode mendukung tunai */}
+            {isCashMethod && (
               <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-100 mt-2">
                 <div>
                   <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Uang Diterima</Label>
@@ -497,7 +613,10 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
         <ReceiptModal
           open={receiptOpen}
           onOpenChange={handleCloseReceipt}
-          storeName="Toko Roman"
+          storeName={storeName}
+          storeAddress={storeAddress}
+          storePhone={storePhone}
+          cashierName={cashierName}
           orderNumber={receiptData.orderNumber}
           date={receiptData.date}
           items={receiptData.items}
@@ -505,6 +624,7 @@ export default function POSNewOrder({ products, customers }: POSNewOrderProps) {
           paymentMethod={receiptData.paymentMethod}
           cashReceived={receiptData.cashReceived}
           cashChange={receiptData.cashChange}
+          customerName={receiptData.customerName}
         />
       )}
     </div>

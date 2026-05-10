@@ -4,11 +4,21 @@ import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Search, Package, Tag } from 'lucide-react'
 import { getProducts, type Product } from '@/app/actions/products'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 
 export default function ProductCheckPage() {
     const [searchTerm, setSearchTerm] = useState('')
+    const [selectedCategory, setSelectedCategory] = useState('all')
+    const [stockFilter, setStockFilter] = useState('all')
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 20
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm, selectedCategory, stockFilter])
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -20,10 +30,30 @@ export default function ProductCheckPage() {
         loadProducts()
     }, [])
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.kode_produk?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredProducts = products.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              p.kode_produk?.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesCategory = selectedCategory === 'all' || p.category_name === selectedCategory
+        
+        let matchesStock = true
+        if (stockFilter === 'available') {
+            matchesStock = p.stock > (p.min_stock || 0)
+        } else if (stockFilter === 'low') {
+            matchesStock = p.stock > 0 && p.stock <= (p.min_stock || 0)
+        } else if (stockFilter === 'empty') {
+            matchesStock = p.stock === 0
+        }
+
+        return matchesSearch && matchesCategory && matchesStock
+    })
+
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
+    const paginatedProducts = filteredProducts.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     )
+
+    const categories = Array.from(new Set(products.map(p => p.category_name).filter(Boolean))) as string[]
 
     return (
         <div className="space-y-5">
@@ -33,15 +63,43 @@ export default function ProductCheckPage() {
                 <p className="text-sm text-gray-500 mt-0.5">Cari barang untuk melihat harga dan sisa stok.</p>
             </div>
 
-            {/* Search */}
-            <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                    className="pl-10 h-9 border-gray-200 text-sm"
-                    placeholder="Cari nama barang atau kode produk..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-3 max-w-3xl">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                        className="pl-10 h-9 border-gray-200 text-sm"
+                        placeholder="Cari nama barang atau kode produk..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="w-full sm:w-48">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="h-9 border-gray-200 text-sm">
+                            <SelectValue placeholder="Semua Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Kategori</SelectItem>
+                            {categories.map(cat => (
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="w-full sm:w-48">
+                    <Select value={stockFilter} onValueChange={setStockFilter}>
+                        <SelectTrigger className="h-9 border-gray-200 text-sm">
+                            <SelectValue placeholder="Semua Stok" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Stok</SelectItem>
+                            <SelectItem value="available">Stok Aman</SelectItem>
+                            <SelectItem value="low">Stok Menipis</SelectItem>
+                            <SelectItem value="empty">Stok Habis (0)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {/* Table Card */}
@@ -83,7 +141,7 @@ export default function ProductCheckPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredProducts.map((product) => (
+                                paginatedProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-gray-50/80 transition-colors">
                                         <td className="px-5 py-3.5 font-medium text-gray-900">{product.name}</td>
                                         <td className="px-4 py-3.5">
@@ -112,6 +170,35 @@ export default function ProductCheckPage() {
                         </tbody>
                     </table>
                 </div>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 print:hidden">
+                        <p className="text-sm text-gray-500">
+                            Menampilkan <span className="font-medium text-gray-900">{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</span> hingga{' '}
+                            <span className="font-medium text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}</span> dari{' '}
+                            <span className="font-medium text-gray-900">{filteredProducts.length}</span> barang
+                        </p>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Sebelumnya
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                Selanjutnya
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

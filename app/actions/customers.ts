@@ -99,6 +99,23 @@ export async function updateCustomer(id: string, formData: FormData) {
 export async function deleteCustomer(id: string) {
   const supabase = createAdminClient()
 
+  // Cek apakah pelanggan masih memiliki riwayat pesanan
+  const { count, error: checkError } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('customer_id', id)
+
+  if (checkError) {
+    return { success: false, error: checkError.message }
+  }
+
+  if (count && count > 0) {
+    return {
+      success: false,
+      error: 'Pelanggan tidak dapat dihapus karena masih memiliki riwayat pesanan. Nonaktifkan pelanggan sebagai gantinya.'
+    }
+  }
+
   const { error } = await supabase
     .from('customers')
     .delete()

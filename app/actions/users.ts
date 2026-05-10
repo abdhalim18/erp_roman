@@ -64,3 +64,30 @@ export async function deleteUser(userId: string) {
     revalidatePath('/admin/users')
     return { success: true, error: null }
 }
+
+export async function updateUser(userId: string, data: { password?: string; role?: string }) {
+    const supabase = createAdminClient()
+
+    const updatePayload: { password?: string; user_metadata?: { role: string } } = {}
+
+    if (data.password && data.password.length >= 6) {
+        updatePayload.password = data.password
+    }
+
+    if (data.role) {
+        updatePayload.user_metadata = { role: data.role }
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+        return { success: false, error: 'Tidak ada perubahan yang disimpan' }
+    }
+
+    const { error } = await supabase.auth.admin.updateUserById(userId, updatePayload)
+
+    if (error) {
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true, error: null }
+}

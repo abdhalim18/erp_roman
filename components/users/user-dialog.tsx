@@ -47,14 +47,14 @@ export function UserDialog() {
         try {
             const result = await createUser(data.email, data.password, data.role)
             if (result.success) {
-                toast.success('User created successfully')
+                toast.success('Pengguna berhasil dibuat')
                 setOpen(false)
                 form.reset()
             } else {
-                toast.error('Failed to create user: ' + result.error)
+                toast.error('Gagal membuat pengguna: ' + result.error)
             }
         } catch (err) {
-            toast.error('An unexpected error occurred')
+            toast.error('Terjadi kesalahan yang tidak terduga')
         } finally {
             setLoading(false)
         }
@@ -65,7 +65,7 @@ export function UserDialog() {
             <DialogTrigger asChild>
                 <Button>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add User
+                    Tambah Pengguna
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl">

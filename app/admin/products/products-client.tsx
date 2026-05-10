@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { toast } from 'sonner'
 
 interface ProductsClientProps {
   initialProducts: Product[]
@@ -48,6 +49,10 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
     setProducts(initialProducts)
   }, [initialProducts])
 
+  const categories = Array.from(new Set(products.map(p => p.category_name).filter(Boolean))) as string[]
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [stockFilter, setStockFilter] = useState('all')
+
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
@@ -59,10 +64,26 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 20
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.kode_produk.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          product.kode_produk.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    let matchesCategory = true
+    if (categoryFilter !== 'all') {
+      matchesCategory = product.category_name === categoryFilter
+    }
+
+    let matchesStock = true
+    if (stockFilter === 'available') {
+      matchesStock = product.stock > product.min_stock
+    } else if (stockFilter === 'low') {
+      matchesStock = product.stock > 0 && product.stock <= product.min_stock
+    } else if (stockFilter === 'empty') {
+      matchesStock = product.stock === 0
+    }
+
+    return matchesSearch && matchesCategory && matchesStock
+  })
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
   const paginatedProducts = filteredProducts.slice(
@@ -83,6 +104,10 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
   }
 
   const promptDeleteProduct = (product: Product) => {
+    if (product.stock > 0) {
+      toast.error('Tidak bisa menghapus produk yang masih memiliki stok. Harap kosongkan stok terlebih dahulu.')
+      return
+    }
     setProductToDelete(product)
     setDeleteDialogOpen(true)
   }
@@ -92,12 +117,13 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
     try {
       const result = await deleteProduct(productToDelete.id)
       if (result.success) {
+        toast.success(`Produk "${productToDelete.name}" berhasil dihapus`)
         setProducts(products.filter((p) => p.id !== productToDelete.id))
       } else {
-        alert('Gagal menghapus produk: ' + result.error)
+        toast.error('Gagal menghapus produk: ' + result.error)
       }
     } catch {
-      alert('Terjadi kesalahan saat menghapus produk')
+      toast.error('Terjadi kesalahan saat menghapus produk')
     } finally {
       setDeleteDialogOpen(false)
       setProductToDelete(null)
@@ -175,14 +201,38 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
             <p className="text-sm font-semibold text-gray-800">Daftar Produk</p>
             <p className="text-xs text-gray-400">{filteredProducts.length} produk ditampilkan</p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <Input
-              placeholder="Cari nama atau kode produk..."
-              className="pl-9 h-8 w-64 text-sm border-gray-200 focus:border-indigo-300"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              className="h-9 text-sm border border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none px-3 bg-gray-50 text-gray-700 font-medium"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="all">Semua Kategori</option>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            
+            <select
+              className="h-9 text-sm border border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none px-3 bg-gray-50 text-gray-700 font-medium"
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+            >
+              <option value="all">Semua Stok</option>
+              <option value="available">Stok Aman</option>
+              <option value="low">Stok Menipis</option>
+              <option value="empty">Stok Habis (0)</option>
+            </select>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Cari nama atau kode produk..."
+                className="pl-9 h-9 w-full sm:w-64 text-sm border-gray-200 focus:border-indigo-300 bg-gray-50 rounded-lg"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -265,8 +315,10 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                           onClick={() => promptDeleteProduct(product)}
+                          disabled={product.stock > 0}
+                          title={product.stock > 0 ? "Kosongkan stok terlebih dahulu untuk menghapus produk ini" : "Hapus Produk"}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

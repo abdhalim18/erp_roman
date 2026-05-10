@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertTriangle } from 'lucide-react'
 
 type Category = {
   id?: string
   name: string
   description: string | null
+  status?: 'active' | 'inactive'
+  product_count?: number
 }
 
 type CategoryDialogProps = {
@@ -22,17 +26,18 @@ type CategoryDialogProps = {
 }
 
 export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving }: CategoryDialogProps) {
-  const [formData, setFormData] = useState<Category>({ name: '', description: '' })
+  const [formData, setFormData] = useState<Category>({ name: '', description: '', status: 'active' })
 
   useEffect(() => {
     if (category) {
       setFormData({
         id: category.id,
         name: category.name || '',
-        description: category.description || ''
+        description: category.description || '',
+        status: category.status || 'active'
       })
     } else {
-      setFormData({ name: '', description: '' })
+      setFormData({ name: '', description: '', status: 'active' })
     }
   }, [category, open])
 
@@ -77,6 +82,32 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving 
                 rows={3}
                 placeholder="Tuliskan keterangan singkat terkait kategori ini..."
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-gray-700 text-xs uppercase tracking-wider font-bold">
+                Status
+              </Label>
+              <Select 
+                value={formData.status || 'active'} 
+                onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:ring-emerald-500 h-11 rounded-xl w-full">
+                  <SelectValue placeholder="Pilih status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-100 shadow-lg">
+                  <SelectItem value="active" className="rounded-lg focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer">Aktif</SelectItem>
+                  <SelectItem value="inactive" className="rounded-lg focus:bg-gray-50 focus:text-gray-900 cursor-pointer">Nonaktif</SelectItem>
+                </SelectContent>
+              </Select>
+              {/* Peringatan jika menonaktifkan kategori yang masih ada produknya */}
+              {formData.status === 'inactive' && (category?.product_count ?? 0) > 0 && (
+                <div className="flex items-start gap-2.5 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700 leading-snug">
+                    Kategori ini masih digunakan oleh <strong>{category?.product_count} produk</strong>. Menonaktifkan kategori tidak akan mempengaruhi produk yang sudah ada, namun kategori ini tidak akan bisa dipilih untuk produk baru.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
