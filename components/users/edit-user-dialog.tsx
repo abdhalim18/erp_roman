@@ -27,6 +27,10 @@ const editUserSchema = z.object({
         { message: 'Kata sandi minimal 6 karakter' }
     ),
     confirmPassword: z.string().optional(),
+    pin: z.string().optional().refine(
+        (val) => !val || (val.length === 4 && /^\d+$/.test(val)),
+        { message: 'PIN harus 4 digit angka' }
+    )
 }).refine(
     (data) => !data.password || data.password === data.confirmPassword,
     { message: 'Konfirmasi kata sandi tidak cocok', path: ['confirmPassword'] }
@@ -50,6 +54,7 @@ export function EditUserDialog({ userId, userEmail, currentRole }: EditUserDialo
             role: currentRole,
             password: '',
             confirmPassword: '',
+            pin: '',
         },
     })
 
@@ -59,6 +64,7 @@ export function EditUserDialog({ userId, userEmail, currentRole }: EditUserDialo
             const result = await updateUser(userId, {
                 role: data.role,
                 password: data.password || undefined,
+                pin: data.pin || undefined,
             })
 
             if (result.success) {
@@ -131,7 +137,7 @@ export function EditUserDialog({ userId, userEmail, currentRole }: EditUserDialo
                         <div className="space-y-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
                             <div className="flex items-center gap-2">
                                 <KeyRound className="h-4 w-4 text-gray-400" />
-                                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Reset Kata Sandi (Opsional)</p>
+                                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Reset Kata Sandi</p>
                             </div>
                             <div className="space-y-3">
                                 <div className="space-y-1.5">
@@ -162,6 +168,34 @@ export function EditUserDialog({ userId, userEmail, currentRole }: EditUserDialo
                                 </div>
                             </div>
                         </div>
+
+                        {/* PIN Kasir */}
+                        {form.watch('role') === 'cashier' && (
+                            <div className="space-y-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <KeyRound className="h-4 w-4 text-gray-400" />
+                                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Ganti PIN</p>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="edit-pin" className="text-xs text-gray-600">PIN Kasir Baru (4 Digit)</Label>
+                                    <Input
+                                        id="edit-pin"
+                                        type="text"
+                                        maxLength={4}
+                                        placeholder="Kosongkan jika tidak ingin mengubah"
+                                        {...form.register('pin', {
+                                            onChange: (e) => {
+                                                e.target.value = e.target.value.replace(/\D/g, '')
+                                            }
+                                        })}
+                                        className="bg-white border-gray-200 h-10 rounded-xl text-sm"
+                                    />
+                                    {form.formState.errors.pin && (
+                                        <p className="text-xs font-medium text-red-500">{form.formState.errors.pin.message}</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex justify-end gap-2 pt-2">
                             <Button

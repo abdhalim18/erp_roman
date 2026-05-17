@@ -9,6 +9,7 @@ export type User = {
     created_at: string
     last_sign_in_at?: string
     role: 'admin' | 'cashier'
+    pin?: string
 }
 
 export async function getUsers() {
@@ -28,20 +29,21 @@ export async function getUsers() {
         email: u.email,
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at,
-        role: (u.user_metadata?.role || 'admin') as 'admin' | 'cashier'
+        role: (u.user_metadata?.role || 'admin') as 'admin' | 'cashier',
+        pin: u.user_metadata?.pin || '1234'
     }))
 
     return { users: sortedUsers, error: null }
 }
 
-export async function createUser(email: string, password: string, role: string) {
+export async function createUser(email: string, password: string, role: string, pin: string = '1234') {
     const supabase = createAdminClient()
 
     const { error } = await supabase.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
-        user_metadata: { role }
+        user_metadata: { role, pin }
     })
 
     if (error) {
@@ -65,17 +67,19 @@ export async function deleteUser(userId: string) {
     return { success: true, error: null }
 }
 
-export async function updateUser(userId: string, data: { password?: string; role?: string }) {
+export async function updateUser(userId: string, data: { password?: string; role?: string; pin?: string }) {
     const supabase = createAdminClient()
 
-    const updatePayload: { password?: string; user_metadata?: { role: string } } = {}
+    const updatePayload: { password?: string; user_metadata?: { role?: string; pin?: string } } = {}
 
     if (data.password && data.password.length >= 6) {
         updatePayload.password = data.password
     }
 
-    if (data.role) {
-        updatePayload.user_metadata = { role: data.role }
+    if (data.role || data.pin) {
+        updatePayload.user_metadata = {}
+        if (data.role) updatePayload.user_metadata.role = data.role
+        if (data.pin) updatePayload.user_metadata.pin = data.pin
     }
 
     if (Object.keys(updatePayload).length === 0) {

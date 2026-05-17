@@ -22,6 +22,16 @@ export async function logout() {
   await supabase.auth.signOut()
 }
 
+export async function verifyPin(pin: string): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !user.user_metadata) return false
+
+  // Default to 1234 if not set
+  const userPin = user.user_metadata.pin || '1234'
+  return userPin === pin
+}
+
 export async function getUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

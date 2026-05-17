@@ -25,6 +25,7 @@ const userSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }),
     password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
     role: z.enum(['admin', 'cashier']),
+    pin: z.string().length(4, { message: 'PIN harus 4 digit' }).regex(/^\d+$/, { message: 'PIN hanya boleh angka' }),
 })
 
 type UserFormValues = z.infer<typeof userSchema>
@@ -39,13 +40,14 @@ export function UserDialog() {
             email: '',
             password: '',
             role: 'cashier',
+            pin: '1234',
         },
     })
 
     async function onSubmit(data: UserFormValues) {
         setLoading(true)
         try {
-            const result = await createUser(data.email, data.password, data.role)
+            const result = await createUser(data.email, data.password, data.role, data.pin)
             if (result.success) {
                 toast.success('Pengguna berhasil dibuat')
                 setOpen(false)
@@ -88,6 +90,13 @@ export function UserDialog() {
                         <Input id="password" type="password" placeholder="Min. 6 karakter" {...form.register('password')} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all" />
                         {form.formState.errors.password && (
                             <p className="text-sm font-medium text-red-500">{form.formState.errors.password.message}</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="pin" className="text-gray-700 text-xs uppercase tracking-wider font-bold">PIN Kasir (4 Digit) *</Label>
+                        <Input id="pin" type="text" maxLength={4} placeholder="Contoh: 1234" {...form.register('pin')} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all" />
+                        {form.formState.errors.pin && (
+                            <p className="text-sm font-medium text-red-500">{form.formState.errors.pin.message}</p>
                         )}
                     </div>
                     <div className="space-y-2">

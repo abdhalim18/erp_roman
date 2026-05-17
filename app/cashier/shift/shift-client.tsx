@@ -4,9 +4,17 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { DollarSign, PlayCircle, StopCircle, Banknote, CreditCard, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { type Shift, openShift, closeShift } from '@/app/actions/shifts'
+import { verifyPin } from '@/app/actions/auth'
 import { formatRupiah } from '@/lib/utils'
 
 interface ShiftClientProps {
@@ -17,27 +25,42 @@ interface ShiftClientProps {
 
 export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: ShiftClientProps) {
   const [modalAwal, setModalAwal] = useState('0')
+  const [password, setPassword] = useState('')
   const [setoranAkhir, setSetoranAkhir] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [errorBuka, setErrorBuka] = useState('')
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly'>('all')
+  const [pinDialogOpen, setPinDialogOpen] = useState(false)
   
   const [isPending, startTransition] = useTransition()
 
   // Untuk form buka shift
-  const handleOpenShift = () => {
+  const handleOpenShiftClick = () => {
     if (modalAwal === '') return setErrorBuka('Isi nominal modal awal')
     const balance = parseInt(modalAwal)
     if (isNaN(balance) || balance < 0) return setErrorBuka('Nominal tidak valid')
 
     setErrorBuka('')
+    setPinDialogOpen(true)
+  }
 
+  const handleConfirmPin = () => {
+    if (password === '') return setErrorBuka('PIN wajib diisi')
+    
     startTransition(async () => {
+      const isValid = await verifyPin(password)
+      if (!isValid) {
+        return setErrorBuka('PIN salah')
+      }
+
+      const balance = parseInt(modalAwal)
       const res = await openShift(balance)
       if (res.success) {
         toast.success('Shift berhasil dibuka')
         setModalAwal('0')
+        setPassword('')
+        setPinDialogOpen(false)
       } else {
         toast.error(res.error || 'Gagal membuka shift')
       }
@@ -141,8 +164,8 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
               <p className="text-xs text-gray-400">Modal awal kas laci</p>
             </div>
           </div>
-          <div className="px-5 py-4 flex flex-col md:flex-row gap-4 items-end">
-            <div className="space-y-1.5 flex-1 w-full">
+          <div className="px-5 py-4 flex flex-col md:flex-row gap-4 items-end border-t border-gray-100 bg-gray-50/50">
+            <div className="space-y-1.5 flex-1 w-full md:max-w-[200px]">
               <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 Nominal Modal Awal
               </Label>
@@ -158,16 +181,55 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
                 />
               </div>
             </div>
-            <div className="flex flex-col w-full md:w-auto">
-              <Button onClick={handleOpenShift} disabled={isPending} className="h-10 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0">
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            <div className="flex flex-col w-full md:w-auto relative">
+              <Button onClick={handleOpenShiftClick} disabled={isPending} className="h-10 px-6 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
+                <PlayCircle className="h-4 w-4" />
                 Buka Shift
               </Button>
-              {errorBuka && <p className="text-xs text-red-500 font-medium mt-1.5 absolute -bottom-6">{errorBuka}</p>}
+              {errorBuka && !pinDialogOpen && <p className="text-xs text-red-500 font-medium absolute -bottom-5 right-0 whitespace-nowrap">{errorBuka}</p>}
             </div>
           </div>
         </div>
       )}
+
+      {/* PIN Dialog */}
+      <Dialog open={pinDialogOpen} onOpenChange={(open) => {
+        setPinDialogOpen(open)
+        if (!open) {
+          setPassword('')
+          setErrorBuka('')
+        }
+      }}>
+        <DialogContent className="sm:max-w-[320px] bg-white rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold">Verifikasi PIN</DialogTitle>
+            <DialogDescription className="text-center text-sm">
+              Masukkan 4 digit PIN Kasir Anda
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <Input
+              className="h-14 border-gray-200 text-center tracking-[1em] font-mono text-2xl w-3/4 mx-auto shadow-inner bg-gray-50/50"
+              placeholder="****"
+              maxLength={4}
+              value={password}
+              onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
+              type="password"
+              disabled={isPending}
+              autoFocus
+            />
+            {errorBuka && pinDialogOpen && <p className="text-sm text-red-500 font-medium text-center animate-in fade-in">{errorBuka}</p>}
+            <Button 
+              onClick={handleConfirmPin} 
+              disabled={isPending || password.length !== 4} 
+              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Konfirmasi & Buka Shift
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Active Shifts List */}
       {initialActiveShifts.length > 0 && (
@@ -182,7 +244,8 @@ export function ShiftClient({ initialActiveShifts, historyShifts, salesMap }: Sh
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-800">Tutup Shift</p>
-                    <p className="text-xs text-gray-500">Dibuka: {new Date(shift.opened_at).toLocaleString('id-ID')}</p>
+                    <p className="text-xs text-gray-500">Dibuka oleh: <span className="font-semibold text-gray-700">{shift.cashier_email}</span></p>
+                    <p className="text-xs text-gray-500 mt-0.5">Waktu: {new Date(shift.opened_at).toLocaleString('id-ID')}</p>
                   </div>
                 </div>
                 <div className="px-5 py-5 space-y-4">
