@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Plus, Search, Users, Edit, Trash2, UserCheck, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -34,11 +34,23 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   const filteredCustomers = initialCustomers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (customer.phone && customer.phone.includes(searchTerm))
+  )
+
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE)
+  const paginatedCustomers = filteredCustomers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   )
 
   const handleAddCustomer = () => {
@@ -164,7 +176,7 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((customer) => (
+                paginatedCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50/80 transition-colors">
                     <td className="px-5 py-3.5 text-sm font-semibold text-gray-900">{customer.name}</td>
                     <td className="px-4 py-3.5 text-sm text-gray-500">{customer.email || '—'}</td>
@@ -203,6 +215,35 @@ export function CustomersClient({ initialCustomers, stats }: CustomersClientProp
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/50 print:hidden">
+                <p className="text-sm text-gray-500">
+                    Menampilkan <span className="font-medium text-gray-900">{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</span> hingga{' '}
+                    <span className="font-medium text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)}</span> dari{' '}
+                    <span className="font-medium text-gray-900">{filteredCustomers.length}</span> pelanggan
+                </p>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Sebelumnya
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Selanjutnya
+                    </Button>
+                </div>
+            </div>
+        )}
       </div>
 
       <CustomerDialog

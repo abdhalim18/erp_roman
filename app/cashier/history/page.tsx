@@ -2,6 +2,7 @@ import { getOrders, OrderItem } from '@/app/actions/orders'
 import { getPaymentMethods } from '@/app/actions/payment_methods'
 import { History, CalendarDays } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +20,10 @@ const STATUS_LABELS: Record<string, string> = {
     processing: 'Diproses',
 }
 
-export default async function CashierHistoryPage({ searchParams }: { searchParams?: { filter?: string } }) {
+export default async function CashierHistoryPage({ searchParams }: { searchParams?: { filter?: string, page?: string } }) {
     const filter = searchParams?.filter || 'all'
+    const page = parseInt(searchParams?.page || '1', 10)
+    const ITEMS_PER_PAGE = 20
     
     const [{ orders }, { data: paymentMethods }] = await Promise.all([
         getOrders(),
@@ -46,7 +49,11 @@ export default async function CashierHistoryPage({ searchParams }: { searchParam
         return true
     })
 
-    const displayOrders = filteredOrders.slice(0, 50)
+    const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE)
+    const displayOrders = filteredOrders.slice(
+        (page - 1) * ITEMS_PER_PAGE,
+        page * ITEMS_PER_PAGE
+    )
 
     return (
         <div className="space-y-5">
@@ -151,6 +158,33 @@ export default async function CashierHistoryPage({ searchParams }: { searchParam
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 print:hidden">
+                        <p className="text-sm text-gray-500">
+                            Menampilkan <span className="font-medium text-gray-900">{((page - 1) * ITEMS_PER_PAGE) + 1}</span> hingga{' '}
+                            <span className="font-medium text-gray-900">{Math.min(page * ITEMS_PER_PAGE, filteredOrders.length)}</span> dari{' '}
+                            <span className="font-medium text-gray-900">{filteredOrders.length}</span> transaksi
+                        </p>
+                        <div className="flex gap-2">
+                            {page > 1 ? (
+                                <Link href={`/cashier/history?filter=${filter}&page=${page - 1}`}>
+                                    <Button variant="outline" size="sm">Sebelumnya</Button>
+                                </Link>
+                            ) : (
+                                <Button variant="outline" size="sm" disabled>Sebelumnya</Button>
+                            )}
+                            {page < totalPages ? (
+                                <Link href={`/cashier/history?filter=${filter}&page=${page + 1}`}>
+                                    <Button variant="outline" size="sm">Selanjutnya</Button>
+                                </Link>
+                            ) : (
+                                <Button variant="outline" size="sm" disabled>Selanjutnya</Button>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

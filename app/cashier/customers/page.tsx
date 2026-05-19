@@ -1,11 +1,21 @@
 import CustomerClientWrapper from './customer-client-wrapper'
 import { getCustomers } from '@/app/actions/customers'
 import { Users } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
-export default async function CashierCustomersPage() {
+export default async function CashierCustomersPage({ searchParams }: { searchParams?: { page?: string } }) {
+    const page = parseInt(searchParams?.page || '1', 10)
+    const ITEMS_PER_PAGE = 20
+
     const { customers } = await getCustomers()
+    const totalPages = Math.ceil((customers?.length || 0) / ITEMS_PER_PAGE)
+    const displayCustomers = (customers || []).slice(
+        (page - 1) * ITEMS_PER_PAGE,
+        page * ITEMS_PER_PAGE
+    )
 
     return (
         <div className="space-y-5">
@@ -47,7 +57,7 @@ export default async function CashierCustomersPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                customers?.map((customer) => (
+                                displayCustomers?.map((customer) => (
                                     <tr key={customer.id} className="hover:bg-gray-50/80 transition-colors">
                                         <td className="px-5 py-3.5 font-semibold text-gray-900">{customer.name}</td>
                                         <td className="px-4 py-3.5 text-sm text-gray-500">{customer.phone || '—'}</td>
@@ -59,6 +69,33 @@ export default async function CashierCustomersPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 print:hidden">
+                        <p className="text-sm text-gray-500">
+                            Menampilkan <span className="font-medium text-gray-900">{((page - 1) * ITEMS_PER_PAGE) + 1}</span> hingga{' '}
+                            <span className="font-medium text-gray-900">{Math.min(page * ITEMS_PER_PAGE, customers?.length || 0)}</span> dari{' '}
+                            <span className="font-medium text-gray-900">{customers?.length || 0}</span> pelanggan
+                        </p>
+                        <div className="flex gap-2">
+                            {page > 1 ? (
+                                <Link href={`/cashier/customers?page=${page - 1}`}>
+                                    <Button variant="outline" size="sm">Sebelumnya</Button>
+                                </Link>
+                            ) : (
+                                <Button variant="outline" size="sm" disabled>Sebelumnya</Button>
+                            )}
+                            {page < totalPages ? (
+                                <Link href={`/cashier/customers?page=${page + 1}`}>
+                                    <Button variant="outline" size="sm">Selanjutnya</Button>
+                                </Link>
+                            ) : (
+                                <Button variant="outline" size="sm" disabled>Selanjutnya</Button>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
