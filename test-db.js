@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local' });
 
-export const dynamic = 'force-dynamic';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function GET() {
-    const supabase = createAdminClient();
+async function test() {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + 30);
     
@@ -23,5 +24,8 @@ export async function GET() {
         .order('expiry_date', { ascending: true })
         .limit(20);
 
-    return NextResponse.json({ error, data });
+    console.log("Error:", error);
+    console.log("Data:", data);
 }
+
+test();

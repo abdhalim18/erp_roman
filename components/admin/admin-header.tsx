@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { LogOut, User as UserIcon, Store } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
+import { NotificationBell } from '@/components/ui/notification-bell'
 
 interface AdminHeaderProps {
   user: User
@@ -47,8 +48,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         </div>
 
         {/* Right: User menu */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex flex-col items-end">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <NotificationBell />
+          <div className="hidden sm:flex flex-col items-end border-l border-gray-100 pl-3">
             <span className="text-xs font-medium text-gray-700">Admin</span>
             <span className="text-[10px] text-gray-400">{user.email}</span>
           </div>

@@ -238,7 +238,7 @@ export async function getExpiringBatches(daysThreshold = 30): Promise<ExpiringBa
             product_id,
             quantity,
             expiry_date,
-            products (name, kode_produk)
+            products (name, product_code)
         `)
         .not('expiry_date', 'is', null)
         .gt('quantity', 0)
@@ -263,7 +263,7 @@ export async function getExpiringBatches(daysThreshold = 30): Promise<ExpiringBa
             id: batch.id,
             product_id: batch.product_id,
             product_name: Array.isArray(batch.products) ? (batch.products[0]?.name || 'Tidak diketahui') : (batch.products?.name || 'Tidak diketahui'),
-            kode_produk: Array.isArray(batch.products) ? (batch.products[0]?.kode_produk || '-') : (batch.products?.kode_produk || '-'),
+            kode_produk: Array.isArray(batch.products) ? (batch.products[0]?.product_code || '-') : (batch.products?.product_code || '-'),
             quantity: batch.quantity,
             expiry_date: batch.expiry_date,
             days_to_expiry: daysToExpiry
