@@ -331,11 +331,12 @@ export default async function AdminDashboard() {
                           {new Date(batch.expiry_date).toLocaleDateString('id-ID')} · {batch.quantity} {batch.kode_produk}
                         </span>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${batch.days_to_expiry <= 0
-                        ? 'bg-red-50 text-red-600'
-                        : 'bg-amber-50 text-amber-600'
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                        batch.days_to_expiry <= 0 ? 'bg-red-50 text-red-600' :
+                        batch.days_to_expiry <= 14 ? 'bg-orange-50 text-orange-600' :
+                        'bg-amber-50 text-amber-600'
                         }`}>
-                        {batch.days_to_expiry <= 0 ? 'Basi' : `${batch.days_to_expiry}h`}
+                        {batch.days_to_expiry <= 0 ? 'Basi' : `H-${batch.days_to_expiry}`}
                       </span>
                     </div>
                   ))}

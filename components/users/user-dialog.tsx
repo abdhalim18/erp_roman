@@ -22,7 +22,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createUser } from '@/app/actions/users'
 
 const userSchema = z.object({
-    email: z.string().email({ message: 'Invalid email address' }),
+    email: z.string()
+        .email({ message: 'Format email tidak valid' })
+        .max(100, { message: 'Email tidak boleh lebih dari 100 karakter' }),
     password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
     role: z.enum(['admin', 'cashier']),
     pin: z.string().length(4, { message: 'PIN harus 4 digit' }).regex(/^\d+$/, { message: 'PIN hanya boleh angka' }),
@@ -80,7 +82,7 @@ export function UserDialog() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-4">
                     <div className="space-y-2">
                         <Label htmlFor="email" className="text-gray-700 text-xs uppercase tracking-wider font-bold">Email *</Label>
-                        <Input id="email" type="email" placeholder="contoh: kasir@tokoroman.com" {...form.register('email')} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all" />
+                        <Input id="email" type="email" placeholder="contoh: kasir@tokoroman.com" maxLength={100} {...form.register('email')} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all" />
                         {form.formState.errors.email && (
                             <p className="text-sm font-medium text-red-500">{form.formState.errors.email.message}</p>
                         )}

@@ -23,7 +23,7 @@ const supplierSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   contact_person: z.string().optional(),
   email: z.string().email('Invalid email').or(z.literal('')),
-  phone: z.string().optional(),
+  phone: z.string().max(15, 'Nomor telepon maksimal 15 digit').optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -195,9 +195,13 @@ export function SupplierDialog({
                 <Input
                   id="phone"
                   placeholder="Contoh: 08123456789"
+                  maxLength={15}
                   {...register('phone')}
-                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
+                  className={`bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all ${errors.phone ? 'border-red-500' : ''}`}
                 />
+                {errors.phone && (
+                  <p className="text-sm text-red-500">{errors.phone.message}</p>
+                )}
               </div>
             </div>
 

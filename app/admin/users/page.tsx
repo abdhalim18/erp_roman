@@ -1,4 +1,5 @@
 import { getUsers } from '@/app/actions/users'
+import { getUser } from '@/app/actions/auth'
 import { UserDialog } from '@/components/users/user-dialog'
 import { EditUserDialog } from '@/components/users/edit-user-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -8,7 +9,8 @@ import { Shield, UserCog, Users } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 export default async function UsersPage() {
-    const { users, error } = await getUsers()
+    const [{ users, error }, currentUser] = await Promise.all([getUsers(), getUser()])
+    const currentUserId = currentUser?.id
 
     const adminCount = users?.filter(u => u.role === 'admin').length || 0
     const cashierCount = users?.filter(u => u.role !== 'admin').length || 0
@@ -106,8 +108,13 @@ export default async function UsersPage() {
                                 </tr>
                             ) : (
                                 users?.map((user) => (
-                                    <tr key={user.id} className="hover:bg-gray-50/80 transition-colors">
-                                        <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{user.email}</td>
+                                    <tr key={user.id} className={`hover:bg-gray-50/80 transition-colors ${user.id === currentUserId ? 'bg-indigo-50/30' : ''}`}>
+                                        <td className="px-5 py-3.5 text-sm font-medium text-gray-900">
+                                            {user.email}
+                                            {user.id === currentUserId && (
+                                                <span className="ml-2 text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-full">Anda</span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3.5">
                                             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${user.role === 'admin'
                                                     ? 'bg-violet-50 text-violet-700 border border-violet-200'
@@ -131,7 +138,13 @@ export default async function UsersPage() {
                                                     userEmail={user.email || ''}
                                                     currentRole={user.role}
                                                 />
-                                                <DeleteUserButton userId={user.id} />
+                                                {user.id === currentUserId ? (
+                                                    <span className="h-8 w-8 inline-flex items-center justify-center text-gray-300 cursor-not-allowed" title="Tidak dapat menghapus akun sendiri">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                    </span>
+                                                ) : (
+                                                    <DeleteUserButton userId={user.id} />
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

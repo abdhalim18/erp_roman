@@ -125,25 +125,37 @@ export async function createOrderWithItems(payload: CreateOrderPayload): Promise
     return { success: false, error: 'Tidak ada item dalam pesanan' }
   }
 
-  // Validate stock availability
+  // Validate sellable stock availability (excluding items expiring within 14 days)
   const productIds = Array.from(new Set(payload.items.map((i) => i.product_id)))
-  const { data: productsData, error: productsError } = await supabase
-    .from('products')
-    .select('id, stock')
-    .in('id', productIds)
+  
+  const thresholdDate = new Date()
+  thresholdDate.setHours(0, 0, 0, 0)
+  thresholdDate.setDate(thresholdDate.getDate() + 14)
 
-  if (productsError) {
-    return { success: false, error: productsError.message }
+  const { data: batchesData, error: batchesError } = await supabase
+    .from('product_batches')
+    .select('product_id, quantity, expiry_date')
+    .in('product_id', productIds)
+    .gt('quantity', 0)
+
+  if (batchesError) {
+    return { success: false, error: batchesError.message }
   }
 
   const stockMap = new Map<string, number>()
-  for (const p of productsData || []) {
-    stockMap.set(p.id as string, p.stock as number)
+  for (const b of batchesData || []) {
+    // Only count if it doesn't expire within 14 days
+    const isSellable = !b.expiry_date || new Date(b.expiry_date) > thresholdDate
+    if (isSellable) {
+      const current = stockMap.get(b.product_id) ?? 0
+      stockMap.set(b.product_id, current + b.quantity)
+    }
   }
+
   for (const item of payload.items) {
     const available = stockMap.get(item.product_id) ?? 0
     if (item.quantity > available) {
-      return { success: false, error: `Stok tidak cukup untuk produk: ${item.product_name}` }
+      return { success: false, error: `Stok layak jual (tidak mendekati kedaluwarsa) tidak cukup untuk produk: ${item.product_name}. Sisa: ${available}` }
     }
   }
 

@@ -18,7 +18,7 @@ import { savePaymentMethods, type PaymentMethod } from '@/app/actions/payment_me
 const settingsSchema = z.object({
     storeName: z.string().min(1, { message: 'Nama toko wajib diisi.' }),
     storeAddress: z.string().optional(),
-    storePhone: z.string().optional(),
+    storePhone: z.string().max(15, { message: 'Nomor telepon maksimal 15 digit.' }).optional(),
     lowStockThreshold: z.number().min(1, { message: 'Threshold minimal 1.' }),
 })
 
@@ -273,7 +273,7 @@ export function SettingsForm({ initialSettings, user, initialPaymentMethods }: S
 
                                 <div className="space-y-1.5">
                                     <Label htmlFor="storePhone" className="text-xs font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1">Telepon Toko</Label>
-                                    <Input id="storePhone" className="h-11 bg-gray-50/50" {...register('storePhone')} />
+                                    <Input id="storePhone" maxLength={15} className="h-11 bg-gray-50/50" {...register('storePhone')} />
                                     {errors.storePhone && <p className="text-xs text-red-500 font-medium mt-1">{errors.storePhone.message}</p>}
                                 </div>
                                 <div className="p-5 bg-amber-50 rounded-xl border border-amber-100 flex gap-4 items-start">

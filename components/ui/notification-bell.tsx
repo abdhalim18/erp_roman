@@ -30,6 +30,18 @@ export function NotificationBell() {
         }
 
         fetchNotifications()
+
+        // 1. Polling secara otomatis setiap 30 detik
+        const intervalId = setInterval(fetchNotifications, 30000)
+
+        // 2. Refetch otomatis setiap kali pengguna kembali ke tab browser ini
+        const handleFocus = () => fetchNotifications()
+        window.addEventListener('focus', handleFocus)
+
+        return () => {
+            clearInterval(intervalId)
+            window.removeEventListener('focus', handleFocus)
+        }
     }, [])
 
     if (loading) {
@@ -75,7 +87,11 @@ export function NotificationBell() {
                         <div className="flex flex-col divide-y divide-gray-50">
                             {notifications.map((batch) => (
                                 <div key={batch.id} className="flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors">
-                                    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${batch.days_to_expiry <= 0 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                                    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                        batch.days_to_expiry <= 0 ? 'bg-red-50 text-red-600' : 
+                                        batch.days_to_expiry <= 14 ? 'bg-orange-50 text-orange-600' : 
+                                        'bg-amber-50 text-amber-600'
+                                    }`}>
                                         <AlertTriangle className="h-4 w-4" />
                                     </div>
                                     <div className="flex flex-col gap-1 min-w-0 flex-1">
@@ -84,9 +100,15 @@ export function NotificationBell() {
                                         </p>
                                         <div className="flex flex-col text-xs text-gray-500 gap-0.5">
                                             <span>Sisa stok: <span className="font-medium text-gray-700">{batch.quantity} item</span></span>
-                                            <span className={`font-medium ${batch.days_to_expiry <= 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                                            <span className={`font-medium ${
+                                                batch.days_to_expiry <= 0 ? 'text-red-600' : 
+                                                batch.days_to_expiry <= 14 ? 'text-orange-600' : 
+                                                'text-amber-600'
+                                            }`}>
                                                 {batch.days_to_expiry <= 0 
                                                     ? `Basi sejak ${new Date(batch.expiry_date).toLocaleDateString('id-ID')}`
+                                                    : batch.days_to_expiry <= 14
+                                                    ? `Tidak Layak Jual (H-${batch.days_to_expiry}) - ${new Date(batch.expiry_date).toLocaleDateString('id-ID')}`
                                                     : `Kedaluwarsa dalam ${batch.days_to_expiry} hari (${new Date(batch.expiry_date).toLocaleDateString('id-ID')})`}
                                             </span>
                                         </div>

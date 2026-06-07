@@ -20,6 +20,7 @@ export type Product = {
   created_at: string
   updated_at: string
   earliest_expiry_date?: string | null
+  sellable_stock?: number
 }
 
 export type ProductWithCategory = Product & {
@@ -38,7 +39,7 @@ export async function getProducts() {
     .select(`
       *,
       category:categories(id, name),
-      product_batches(expiry_date)
+      product_batches(quantity, expiry_date)
     `)
     .order('created_at', { ascending: false })
 
@@ -47,8 +48,22 @@ export async function getProducts() {
     return { products: [], error: error.message }
   }
 
+  const thresholdDate = new Date()
+  thresholdDate.setHours(0, 0, 0, 0)
+  thresholdDate.setDate(thresholdDate.getDate() + 14)
+
   const products = data.map(product => {
     const batches = product.product_batches || []
+    
+    let sellable_stock = 0
+
+    batches.forEach((b: any) => {
+       const isSellable = !b.expiry_date || new Date(b.expiry_date) > thresholdDate
+       if (isSellable) {
+         sellable_stock += (b.quantity || 0)
+       }
+    })
+
     const validExpiries = batches
       .filter((b: any) => b.expiry_date !== null)
       .map((b: any) => b.expiry_date)
@@ -56,6 +71,7 @@ export async function getProducts() {
 
     return {
       ...product,
+      sellable_stock,
       kode_produk: product.product_code || product.kode_produk,
       category_id: product.category_id,
       category: product.category,
@@ -85,7 +101,24 @@ export async function getCategoriesForSelect() {
 
 export async function createProduct(formData: FormData) {
   const supabase = createAdminClient()
+  const name = formData.get('name') as string
+  const description = formData.get('description') as string
   const kode_produk = formData.get('kode_produk') as string
+  const unit = formData.get('unit') as string || 'unit'
+
+  // Validasi batas karakter
+  if (name && name.length > 100) {
+    return { success: false, error: 'Nama produk maksimal 100 karakter.' }
+  }
+  if (description && description.length > 500) {
+    return { success: false, error: 'Deskripsi produk maksimal 500 karakter.' }
+  }
+  if (kode_produk && kode_produk.length > 50) {
+    return { success: false, error: 'Kode produk maksimal 50 karakter.' }
+  }
+  if (unit && unit.length > 20) {
+    return { success: false, error: 'Satuan produk maksimal 20 karakter.' }
+  }
 
   const { data: existingProduct } = await supabase
     .from('products')
@@ -98,20 +131,65 @@ export async function createProduct(formData: FormData) {
   }
 
   const product = {
-    name: formData.get('name') as string,
-    description: formData.get('description') as string,
+    name,
+    description,
     category_id: formData.get('category_id') === 'none' ? null : (formData.get('category_id') as string || null),
     product_code: kode_produk,
     price: parseFloat(formData.get('price') as string),
     cost: formData.get('cost') ? parseFloat(formData.get('cost') as string) : null,
     stock: parseInt(formData.get('stock') as string) || 0,
     min_stock: parseInt(formData.get('min_stock') as string) || 0,
-    unit: formData.get('unit') as string || 'unit',
+    unit,
     status: formData.get('status') as 'active' | 'inactive' | 'discontinued' || 'active',
+  }
+
+  // Validasi harga jual harus lebih dari 0 dan maksimal 99.999.999
+  if (!product.price || product.price <= 0) {
+    return { success: false, error: 'Harga jual wajib diisi dan harus lebih dari Rp 0.' }
+  }
+  if (product.price > 99999999) {
+    return { success: false, error: 'Harga jual maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi harga modal maksimal 99.999.999
+  if (product.cost && product.cost > 99999999) {
+    return { success: false, error: 'Harga modal maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi stok awal tidak boleh negatif dan maksimal 9.999
+  if (product.stock < 0) {
+    return { success: false, error: 'Stok awal tidak boleh bernilai negatif.' }
+  }
+  if (product.stock > 9999) {
+    return { success: false, error: 'Stok awal maksimal adalah 9.999.' }
+  }
+
+  // Validasi ambang batas stok minimum
+  if (product.min_stock < 1) {
+    return { success: false, error: 'Ambang batas minimal adalah 1.' }
+  }
+  if (product.min_stock > 9999) {
+    return { success: false, error: 'Ambang batas stok maksimal adalah 9.999.' }
   }
 
   const initialStock = parseInt(formData.get('stock') as string) || 0
   const initialExpiry = formData.get('expiry_date') as string || null
+
+  // Validasi tanggal kedaluwarsa tidak boleh sudah lewat
+  if (initialExpiry) {
+    const expiryDate = new Date(initialExpiry)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (expiryDate < today) {
+      return { success: false, error: 'Obat yang sudah kedaluwarsa tidak dapat ditambahkan ke gudang. Periksa kembali tanggal kedaluwarsa.' }
+    }
+
+    const maxExpiry = new Date(today)
+    maxExpiry.setFullYear(maxExpiry.getFullYear() + 10)
+    if (expiryDate > maxExpiry) {
+      return { success: false, error: 'Tanggal kedaluwarsa maksimal adalah 10 tahun dari sekarang.' }
+    }
+  }
 
   const { stock: _, ...productDataToInsert } = product
 
@@ -143,7 +221,24 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(id: string, formData: FormData) {
   const supabase = createAdminClient()
+  const name = formData.get('name') as string
+  const description = formData.get('description') as string
   const kode_produk = formData.get('kode_produk') as string
+  const unit = formData.get('unit') as string || 'unit'
+
+  // Validasi batas karakter
+  if (name && name.length > 100) {
+    return { success: false, error: 'Nama produk maksimal 100 karakter.' }
+  }
+  if (description && description.length > 500) {
+    return { success: false, error: 'Deskripsi produk maksimal 500 karakter.' }
+  }
+  if (kode_produk && kode_produk.length > 50) {
+    return { success: false, error: 'Kode produk maksimal 50 karakter.' }
+  }
+  if (unit && unit.length > 20) {
+    return { success: false, error: 'Satuan produk maksimal 20 karakter.' }
+  }
 
   const { data: existingProduct } = await supabase
     .from('products')
@@ -157,16 +252,37 @@ export async function updateProduct(id: string, formData: FormData) {
   }
 
   const product = {
-    name: formData.get('name') as string,
-    description: formData.get('description') as string,
+    name,
+    description,
     category_id: formData.get('category_id') === 'none' ? null : (formData.get('category_id') as string || null),
-    product_code: formData.get('kode_produk') as string,
+    product_code: kode_produk,
     price: parseFloat(formData.get('price') as string),
     cost: formData.get('cost') ? parseFloat(formData.get('cost') as string) : null,
     stock: parseInt(formData.get('stock') as string),
     min_stock: parseInt(formData.get('min_stock') as string),
-    unit: formData.get('unit') as string || 'unit',
+    unit,
     status: formData.get('status') as 'active' | 'inactive' | 'discontinued',
+  }
+
+  // Validasi harga jual harus lebih dari 0 dan maksimal 99.999.999
+  if (!product.price || product.price <= 0) {
+    return { success: false, error: 'Harga jual wajib diisi dan harus lebih dari Rp 0.' }
+  }
+  if (product.price > 99999999) {
+    return { success: false, error: 'Harga jual maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi harga modal maksimal 99.999.999
+  if (product.cost && product.cost > 99999999) {
+    return { success: false, error: 'Harga modal maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi ambang batas stok minimum
+  if (product.min_stock < 1) {
+    return { success: false, error: 'Ambang batas minimal adalah 1.' }
+  }
+  if (product.min_stock > 9999) {
+    return { success: false, error: 'Ambang batas stok maksimal adalah 9.999.' }
   }
 
   const { stock: _, ...productDataToUpdate } = product

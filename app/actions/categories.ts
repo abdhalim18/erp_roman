@@ -49,10 +49,23 @@ export async function getCategory(id: string): Promise<{ category: Category | nu
 
 export async function createCategory(formData: FormData): Promise<{ success: boolean; error: string | null }> {
   const supabase = createAdminClient()
+  const name = (formData.get('name') as string).trim()
+
+  // Validasi duplikat nama kategori (case-insensitive)
+  const { data: existing } = await supabase
+    .from('categories')
+    .select('id')
+    .ilike('name', name)
+    .limit(1)
+
+  if (existing && existing.length > 0) {
+    return { success: false, error: `Kategori dengan nama "${name}" sudah ada. Gunakan nama lain.` }
+  }
+
   const { error } = await supabase
     .from('categories')
     .insert([{
-      name: formData.get('name') as string,
+      name,
       description: formData.get('description') as string || null,
       status: formData.get('status') as string || 'active'
     }])
@@ -66,10 +79,24 @@ export async function createCategory(formData: FormData): Promise<{ success: boo
 
 export async function updateCategory(id: string, formData: FormData): Promise<{ success: boolean; error: string | null }> {
   const supabase = createAdminClient()
+  const name = (formData.get('name') as string).trim()
+
+  // Validasi duplikat nama kategori (case-insensitive), kecuali kategori ini sendiri
+  const { data: existing } = await supabase
+    .from('categories')
+    .select('id')
+    .ilike('name', name)
+    .neq('id', id)
+    .limit(1)
+
+  if (existing && existing.length > 0) {
+    return { success: false, error: `Kategori dengan nama "${name}" sudah ada. Gunakan nama lain.` }
+  }
+
   const { error } = await supabase
     .from('categories')
     .update({
-      name: formData.get('name') as string,
+      name,
       description: formData.get('description') as string || null,
       status: formData.get('status') as string || 'active',
       updated_at: new Date().toISOString()

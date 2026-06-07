@@ -74,6 +74,75 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
     const priceValue = parseRupiah(price)
     const costValue = cost ? parseRupiah(cost) : 0
 
+    // Validasi harga jual wajib lebih dari 0
+    if (!priceValue || priceValue <= 0) {
+      setError('Harga jual wajib diisi dan harus lebih dari Rp 0.')
+      setLoading(false)
+      return
+    }
+
+    // Validasi harga jual maksimal
+    if (priceValue > 99999999) {
+      setError('Harga jual maksimal adalah Rp 99.999.999.')
+      setLoading(false)
+      return
+    }
+
+    if (costValue > 99999999) {
+      setError('Harga modal maksimal adalah Rp 99.999.999.')
+      setLoading(false)
+      return
+    }
+
+    // Validasi ambang batas stok minimum (EWS)
+    const minStockValue = parseInt(formData.get('min_stock') as string) || 0
+    if (minStockValue < 1) {
+      setError('Ambang batas minimal adalah 1.')
+      setLoading(false)
+      return
+    }
+    if (minStockValue > 9999) {
+      setError('Ambang batas stok maksimal adalah 9.999.')
+      setLoading(false)
+      return
+    }
+
+    // Validasi stok awal tidak boleh kurang dari 0 saat membuat produk baru
+    if (mode === 'create') {
+      const stockValue = parseInt(formData.get('stock') as string) || 0
+      if (stockValue < 0) {
+        setError('Stok awal tidak boleh bernilai negatif.')
+        setLoading(false)
+        return
+      }
+      if (stockValue > 9999) {
+        setError('Stok awal maksimal adalah 9.999.')
+        setLoading(false)
+        return
+      }
+
+      // Validasi tanggal kedaluwarsa tidak boleh sudah lewat
+      const expiryDate = formData.get('expiry_date') as string
+      if (expiryDate) {
+        const expiry = new Date(expiryDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        if (expiry < today) {
+          setError('Obat yang sudah kedaluwarsa tidak dapat ditambahkan ke gudang. Periksa kembali tanggal kedaluwarsa.')
+          setLoading(false)
+          return
+        }
+
+        const maxExpiry = new Date(today)
+        maxExpiry.setFullYear(maxExpiry.getFullYear() + 10)
+        if (expiry > maxExpiry) {
+          setError('Tanggal kedaluwarsa maksimal adalah 10 tahun dari sekarang.')
+          setLoading(false)
+          return
+        }
+      }
+    }
+
     formData.set('price', priceValue.toString())
     if (cost) formData.set('cost', costValue.toString())
 
@@ -117,6 +186,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 name="name"
                 placeholder="Contoh: Vitamin Sapi"
                 defaultValue={product?.name}
+                maxLength={100}
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 required
               />
@@ -128,6 +198,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 name="description"
                 placeholder="Rincian deskripsi singkat"
                 defaultValue={product?.description || ''}
+                maxLength={500}
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
             </div>
@@ -164,6 +235,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 name="kode_produk"
                 placeholder="SKU-XXX"
                 defaultValue={product?.kode_produk}
+                maxLength={50}
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
                 required
               />
@@ -176,6 +248,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 name="unit"
                 defaultValue={product?.unit || 'unit'}
                 disabled={loading}
+                maxLength={20}
                 placeholder="misalnya: dus, kg, pcs"
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"
               />
@@ -236,6 +309,7 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                   name="stock"
                   type="number"
                   min="0"
+                  max="9999"
                   defaultValue={0}
                   required
                   disabled={loading}
@@ -250,7 +324,8 @@ export function ProductDialog({ open, onOpenChange, product, mode }: ProductDial
                 id="min_stock"
                 name="min_stock"
                 type="number"
-                min="0"
+                min="1"
+                max="9999"
                 defaultValue={product?.min_stock || 10}
                 disabled={loading}
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"

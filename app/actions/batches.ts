@@ -49,6 +49,29 @@ export async function addProductBatch(formData: FormData): Promise<{ success: bo
     return { success: false, error: 'Product ID, valid quantity, or expiry date is missing' }
   }
 
+  if (quantity > 9999) {
+    return { success: false, error: 'Jumlah stok (kuantitas) maksimal adalah 9.999.' }
+  }
+
+  // Validasi harga modal maksimal 99.999.999
+  if (cost && cost > 99999999) {
+    return { success: false, error: 'Harga modal maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi tanggal kedaluwarsa tidak boleh sudah lewat
+  const expiryDateObj = new Date(expiryDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (expiryDateObj < today) {
+    return { success: false, error: 'Obat yang sudah kedaluwarsa tidak dapat ditambahkan ke gudang. Periksa kembali tanggal kedaluwarsa.' }
+  }
+
+  const maxExpiry = new Date(today)
+  maxExpiry.setFullYear(maxExpiry.getFullYear() + 10)
+  if (expiryDateObj > maxExpiry) {
+    return { success: false, error: 'Tanggal kedaluwarsa maksimal adalah 10 tahun dari sekarang.' }
+  }
+
   const batch = {
     product_id: productId,
     quantity,
@@ -106,6 +129,29 @@ export async function editProductBatch(formData: FormData): Promise<{ success: b
 
   if (!batchId || !productId || isNaN(quantity) || quantity < 0 || !expiryDate) {
     return { success: false, error: 'Terdapat data yang tidak valid, pastikan semua kolom yang diperlukan terisi' }
+  }
+
+  if (quantity > 9999) {
+    return { success: false, error: 'Jumlah stok (kuantitas) maksimal adalah 9.999.' }
+  }
+
+  // Validasi harga modal maksimal 99.999.999
+  if (cost && cost > 99999999) {
+    return { success: false, error: 'Harga modal maksimal adalah Rp 99.999.999.' }
+  }
+
+  // Validasi tanggal kedaluwarsa tidak boleh sudah lewat
+  const expiryDateObj = new Date(expiryDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (expiryDateObj < today) {
+    return { success: false, error: 'Tanggal kedaluwarsa tidak boleh sudah lewat. Periksa kembali tanggal kedaluwarsa.' }
+  }
+
+  const maxExpiry = new Date(today)
+  maxExpiry.setFullYear(maxExpiry.getFullYear() + 10)
+  if (expiryDateObj > maxExpiry) {
+    return { success: false, error: 'Tanggal kedaluwarsa maksimal adalah 10 tahun dari sekarang.' }
   }
 
   const { error } = await supabase

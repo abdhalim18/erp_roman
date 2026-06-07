@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export type User = {
@@ -55,6 +56,14 @@ export async function createUser(email: string, password: string, role: string, 
 }
 
 export async function deleteUser(userId: string) {
+    // Cek apakah user yang akan dihapus adalah user yang sedang login
+    const supabaseAuth = await createClient()
+    const { data: { user: currentUser } } = await supabaseAuth.auth.getUser()
+
+    if (currentUser && currentUser.id === userId) {
+        return { success: false, error: 'Anda tidak dapat menghapus akun Anda sendiri.' }
+    }
+
     const supabase = createAdminClient()
 
     const { error } = await supabase.auth.admin.deleteUser(userId)

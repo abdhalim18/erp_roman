@@ -106,7 +106,8 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
         if (found.quantity + 1 > found.maxStock) return prev
         return prev.map((i) => (i.product_id === p.id ? { ...i, quantity: i.quantity + 1 } : i))
       }
-      if (p.stock <= 0) return prev
+      const availableStock = p.sellable_stock !== undefined ? p.sellable_stock : p.stock
+      if (availableStock <= 0) return prev
       return [
         ...prev,
         {
@@ -115,7 +116,7 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
           unit_price: p.price,
           quantity: 1,
           discount: 0,
-          maxStock: p.stock,
+          maxStock: availableStock,
           earliest_expiry_date: p.earliest_expiry_date,
         },
       ]
@@ -260,7 +261,9 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
                 const isExpired = p.earliest_expiry_date && new Date(p.earliest_expiry_date) < new Date()
                 const isAlert = p.earliest_expiry_date && !isExpired &&
                   new Date(p.earliest_expiry_date) < new Date(new Date().setDate(new Date().getDate() + 30))
-                const isOutOfStock = p.stock <= 0
+                
+                const availableStock = p.sellable_stock !== undefined ? p.sellable_stock : p.stock
+                const isOutOfStock = availableStock <= 0
                 const inCart = cart.find(i => i.product_id === p.id)
 
                 return (
@@ -287,11 +290,11 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                           isOutOfStock
                             ? 'bg-red-50 text-red-600 border border-red-200'
-                            : p.stock <= lowStockThreshold
+                            : availableStock <= lowStockThreshold
                               ? 'bg-orange-50 text-orange-600 border border-orange-200'
                               : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                         }`}>
-                          Stok: {p.stock}
+                          Stok: {availableStock} {p.stock > availableStock ? `(Total: ${p.stock})` : ''}
                         </span>
                         {p.earliest_expiry_date && (
                           <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${

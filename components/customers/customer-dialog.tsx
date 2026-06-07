@@ -42,6 +42,13 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
     const form = e.currentTarget
     const formData = new FormData(form)
 
+    const phoneValue = formData.get('phone') as string
+    if (phoneValue && phoneValue.length > 15) {
+      setError('Nomor telepon maksimal 15 digit.')
+      setLoading(false)
+      return
+    }
+
     try {
       const result = mode === 'create'
         ? await createCustomer(formData)
@@ -106,6 +113,7 @@ export function CustomerDialog({ open, onOpenChange, customer, mode }: CustomerD
                 id="phone"
                 name="phone"
                 placeholder="Contoh: 0812345678"
+                maxLength={15}
                 defaultValue={customer?.phone || ''}
                 disabled={loading}
                 className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-11 rounded-xl transition-all"

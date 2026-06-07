@@ -38,10 +38,15 @@ export async function getCustomers() {
 export async function createCustomer(formData: FormData) {
   const supabase = createAdminClient()
 
+  const phone = formData.get('phone') as string || null
+  if (phone && phone.length > 15) {
+    return { success: false, error: 'Nomor telepon maksimal 15 digit.' }
+  }
+
   const customer = {
     name: formData.get('name') as string,
     email: formData.get('email') as string || null,
-    phone: formData.get('phone') as string || null,
+    phone,
     address: formData.get('address') as string || null,
     city: formData.get('city') as string || null,
     state: formData.get('state') as string || null,
@@ -66,10 +71,15 @@ export async function updateCustomer(id: string, formData: FormData) {
   try {
     const supabase = createAdminClient()
 
+    const phone = formData.get('phone') as string || null
+    if (phone && phone.length > 15) {
+      return { success: false, error: 'Nomor telepon maksimal 15 digit.' }
+    }
+
     const customer = {
       name: formData.get('name') as string,
       email: formData.get('email') as string || null,
-      phone: formData.get('phone') as string || null,
+      phone,
       address: formData.get('address') as string || null,
       city: formData.get('city') as string || null,
       state: formData.get('state') as string || null,

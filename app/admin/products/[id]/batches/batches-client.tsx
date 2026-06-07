@@ -87,10 +87,44 @@ export function BatchesClient({ product, initialBatches, suppliers }: { product:
     e.preventDefault()
     setLoading(true)
     
+    const qtyValue = parseInt(quantity)
+    if (qtyValue > 9999) {
+      toast.error('Jumlah stok (kuantitas) maksimal adalah 9.999.')
+      setLoading(false)
+      return
+    }
+
+    const costValue = cost ? parseRupiah(cost) : 0
+    if (costValue > 99999999) {
+      toast.error('Harga modal maksimal adalah Rp 99.999.999.')
+      setLoading(false)
+      return
+    }
+
+    if (expiryDate) {
+      const expiry = new Date(expiryDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      if (expiry < today) {
+        toast.error('Obat yang sudah kedaluwarsa tidak dapat ditambahkan ke gudang. Periksa kembali tanggal kedaluwarsa.')
+        setLoading(false)
+        return
+      }
+
+      const maxExpiry = new Date(today)
+      maxExpiry.setFullYear(maxExpiry.getFullYear() + 10)
+      if (expiry > maxExpiry) {
+        toast.error('Tanggal kedaluwarsa maksimal adalah 10 tahun dari sekarang.')
+        setLoading(false)
+        return
+      }
+    }
+
     const formData = new FormData()
     formData.append('product_id', product.id)
     formData.append('quantity', quantity)
-    if (cost) formData.append('cost', parseRupiah(cost).toString())
+    if (cost) formData.append('cost', costValue.toString())
     if (expiryDate) formData.append('expiry_date', expiryDate)
     if (purchaseDate) formData.append('purchase_date', purchaseDate)
     if (supplierId) formData.append('supplier_id', supplierId)
@@ -266,6 +300,7 @@ export function BatchesClient({ product, initialBatches, suppliers }: { product:
                   id="quantity"
                   type="number"
                   min="1"
+                  max="9999"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   required
