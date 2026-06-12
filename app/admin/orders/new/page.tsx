@@ -22,9 +22,9 @@ export default async function NewOrderPage() {
     getUserRole()
   ])
 
-  // Hanya tampilkan produk yang aktif dan sisa stoknya lebih dari 0
+  // Tampilkan semua produk yang aktif (termasuk yang stoknya habis agar kasir tahu produk ada tapi kosong)
   const availableProducts = (products || []).filter(
-    (p) => p.status === 'active' && p.stock > 0
+    (p) => p.status === 'active'
   )
 
   const cashierName = role === 'admin' ? 'Admin' : 'Kasir'

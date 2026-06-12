@@ -270,7 +270,7 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
                   <div
                     key={p.id}
                     className={`relative flex flex-col justify-between rounded-xl border p-3.5 transition-all duration-150 ${
-                      isOutOfStock || isExpired
+                      isOutOfStock
                         ? 'border-gray-100 bg-gray-50 opacity-60'
                         : inCart
                           ? 'border-emerald-200 bg-emerald-50/50 shadow-sm'
@@ -316,9 +316,9 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
                         size="sm"
                         className="h-7 px-3 text-xs gap-1"
                         onClick={() => addToCart(p)}
-                        disabled={isOutOfStock || !!isExpired}
+                        disabled={isOutOfStock}
                       >
-                        {isExpired ? 'Kedaluwarsa' : isOutOfStock ? 'Habis' : <><Plus className="h-3 w-3" /> Tambah</>}
+                        {isOutOfStock && p.stock > 0 ? 'Kedaluwarsa' : isOutOfStock ? 'Habis' : <><Plus className="h-3 w-3" /> Tambah</>}
                       </Button>
                     </div>
                   </div>
@@ -549,23 +549,48 @@ export default function POSNewOrder({ products, customers, lowStockThreshold = 8
 
             {/* Cash Received (Kembalian) - Hanya tampil jika metode mendukung tunai */}
             {isCashMethod && (
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-100 mt-2">
-                <div>
-                  <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Uang Diterima</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={cashReceived || ''}
-                    onChange={(e) => setCashReceived(Number(e.target.value) || 0)}
-                    placeholder="0"
-                    className="h-8 text-xs border-gray-200"
-                  />
-                </div>
-                <div>
-                  <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Kembalian</Label>
-                  <div className={`h-8 rounded-md flex items-center px-3 text-xs font-bold border ${cashReceived >= total ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                    {cashReceived >= total ? formatRupiah(cashReceived - total) : '-'}
+              <div className="space-y-2 pt-1 border-t border-gray-100 mt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Uang Diterima</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={cashReceived || ''}
+                      onChange={(e) => setCashReceived(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      className="h-8 text-xs border-gray-200"
+                    />
                   </div>
+                  <div>
+                    <Label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Kembalian</Label>
+                    <div className={`h-8 rounded-md flex items-center px-3 text-xs font-bold border ${cashReceived >= total ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                      {cashReceived >= total ? formatRupiah(cashReceived - total) : '-'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Shortcut Uang Pas & Nominal */}
+                <div className="flex flex-wrap gap-1.5">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="h-6 px-2.5 text-[10px] border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+                    onClick={() => setCashReceived(total)}
+                  >
+                    Uang Pas
+                  </Button>
+                  {[100000, 50000, 20000, 10000].map(amount => (
+                    <Button 
+                      key={amount}
+                      type="button" 
+                      variant="outline" 
+                      className="h-6 px-2 text-[10px] border-gray-200 text-gray-600 hover:bg-gray-50"
+                      onClick={() => setCashReceived(amount)}
+                    >
+                      {formatRupiah(amount).replace('Rp', '').replace(',00', '').trim()}
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}

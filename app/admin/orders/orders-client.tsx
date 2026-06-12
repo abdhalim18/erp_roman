@@ -140,23 +140,26 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                 </div>
             </div>
 
-            {/* Stat Cards — left-border style (beda dari Laporan yang pakai icon circle) */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Stat Cards */}
+            <div className="grid gap-4 sm:grid-cols-4">
                 {[
-                    { label: 'Total Transaksi', value: totalOrders, sub: 'Semua status', border: 'border-l-indigo-500', icon: <ShoppingCart className="h-4 w-4 text-indigo-500" /> },
-                    { label: 'Tertunda', value: pendingOrders, sub: 'Menunggu diproses', border: 'border-l-amber-500', icon: <Clock className="h-4 w-4 text-amber-500" /> },
-                    { label: 'Selesai', value: completedOrders, sub: 'Berhasil diselesaikan', border: 'border-l-emerald-500', icon: <CheckCircle className="h-4 w-4 text-emerald-500" /> },
-                    { label: 'Pendapatan', value: formatCurrency(totalRevenue), sub: 'Transaksi non-batal', border: 'border-l-violet-500', icon: <DollarSign className="h-4 w-4 text-violet-500" />, small: true },
+                    { label: 'Total Transaksi', value: totalOrders, sub: 'Semua status', gradient: 'from-blue-500 to-indigo-500', icon: <ShoppingCart className="h-5 w-5 text-white" />, bubble: 'bg-blue-50' },
+                    { label: 'Tertunda', value: pendingOrders, sub: 'Menunggu diproses', gradient: 'from-amber-400 to-orange-500', icon: <Clock className="h-5 w-5 text-white" />, bubble: 'bg-amber-50' },
+                    { label: 'Selesai', value: completedOrders, sub: 'Berhasil diselesaikan', gradient: 'from-emerald-400 to-teal-500', icon: <CheckCircle className="h-5 w-5 text-white" />, bubble: 'bg-emerald-50' },
+                    { label: 'Pendapatan', value: formatCurrency(totalRevenue), sub: 'Transaksi non-batal', gradient: 'from-violet-500 to-purple-600', icon: <DollarSign className="h-5 w-5 text-white" />, bubble: 'bg-violet-50', small: true },
                 ].map(card => (
-                    <div key={card.label} className={`bg-white rounded-xl border border-gray-100 shadow-sm border-l-4 ${card.border} px-4 py-4 flex items-center justify-between`}>
-                        <div>
-                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{card.label}</p>
-                            <p className={`font-bold text-gray-900 mt-1 ${card.small ? 'text-base' : 'text-2xl'}`}>{card.value}</p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">{card.sub}</p>
+                    <div key={card.label} className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{card.label}</p>
+                                <p className={`mt-2 font-bold text-gray-900 ${card.small ? 'text-xl' : 'text-2xl'}`}>{card.value}</p>
+                                <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
+                            </div>
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.gradient} shadow-sm`}>
+                                {card.icon}
+                            </div>
                         </div>
-                        <div className="h-9 w-9 rounded-lg bg-gray-50 flex items-center justify-center">
-                            {card.icon}
-                        </div>
+                        <div className={`absolute bottom-0 right-0 h-14 w-14 translate-x-3 translate-y-3 rounded-full ${card.bubble} opacity-60`} />
                     </div>
                 ))}
             </div>
@@ -216,14 +219,14 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-gray-100 bg-gray-50/60">
-                                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">No. Penjualan</th>
-                                <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Waktu</th>
-                                <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Pembayaran</th>
-                                <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Item</th>
-                                <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Total</th>
-                                <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-5 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+                            <tr className="bg-indigo-50/60 border-b-2 border-indigo-100">
+                                <th className="px-5 py-3.5 text-left text-[11px] font-bold text-indigo-600 uppercase tracking-wider">No. Penjualan</th>
+                                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Waktu</th>
+                                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Pembayaran</th>
+                                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Item</th>
+                                <th className="px-4 py-3.5 text-right text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Total</th>
+                                <th className="px-4 py-3.5 text-left text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Status</th>
+                                <th className="px-5 py-3.5 text-right text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -238,8 +241,10 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                                     </td>
                                 </tr>
                             ) : (
-                                paginatedOrders.map((order) => (
-                                    <tr key={order.id} className={`hover:bg-gray-50/50 transition-colors ${STATUS_ROW_BORDER[order.status] || ''}`}>
+                                paginatedOrders.map((order, idx) => {
+                                    const isEven = idx % 2 === 0
+                                    return (
+                                        <tr key={order.id} className={`hover:bg-indigo-50/30 transition-colors ${isEven ? 'bg-white' : 'bg-gray-50/40'} ${STATUS_ROW_BORDER[order.status] || ''}`}>
                                         <td className="px-5 py-3.5">
                                             <span className="text-sm font-mono font-semibold text-gray-900">{order.order_number}</span>
                                         </td>
@@ -257,12 +262,19 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                                                 {((order as any).order_items || []).length === 0 ? (
                                                     <span className="text-xs text-gray-400 italic">—</span>
                                                 ) : (
-                                                    (order as any).order_items.map((item: any, idx: number) => (
-                                                        <span key={idx} className="text-xs text-gray-700">
-                                                            {item.products?.name || item.product_name || 'Produk'}
-                                                            <span className="text-gray-400 ml-1">×{item.quantity}</span>
-                                                        </span>
-                                                    ))
+                                                    <>
+                                                        {(order as any).order_items.slice(0, 3).map((item: any, idx: number) => (
+                                                            <span key={idx} className="text-xs text-gray-700 line-clamp-1" title={item.products?.name || item.product_name}>
+                                                                {item.products?.name || item.product_name || 'Produk'}
+                                                                <span className="text-gray-400 ml-1">×{item.quantity}</span>
+                                                            </span>
+                                                        ))}
+                                                        {((order as any).order_items || []).length > 3 && (
+                                                            <span className="text-[10px] font-medium text-indigo-500 mt-0.5">
+                                                                + {((order as any).order_items || []).length - 3} produk lainnya
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         </td>
@@ -297,7 +309,8 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                                             </DropdownMenu>
                                         </td>
                                     </tr>
-                                ))
+                                    )
+                                })
                             )}
                         </tbody>
                     </table>

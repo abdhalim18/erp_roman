@@ -42,8 +42,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         // 2. Pending Orders
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
 
-        // 3. Total Revenue (fetch amounts of paid orders)
-        supabase.from('orders').select('total_amount').or('payment_status.eq.paid,payment_status.eq.partial'),
+        // 3. Total Revenue (fetch amounts of paid orders that are not cancelled)
+        supabase.from('orders').select('total_amount').neq('status', 'cancelled').or('payment_status.eq.paid,payment_status.eq.partial'),
 
         // 4. Products (count and fetch for low stock calculation)
         supabase.from('products').select('id, name, stock, min_stock'),
@@ -166,6 +166,7 @@ export async function getDashboardCharts(): Promise<ChartData[]> {
             total_amount
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
+        .neq('status', 'cancelled')
         .or('payment_status.eq.paid,payment_status.eq.partial')
         .order('created_at', { ascending: true })
 

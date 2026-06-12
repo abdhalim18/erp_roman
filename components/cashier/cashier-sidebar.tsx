@@ -42,6 +42,12 @@ export function CashierSidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={(e) => {
+                                // Mencegah cache browser agar selalu memuat data terbaru dari server
+                                e.preventDefault()
+                                router.push(item.href)
+                                router.refresh()
+                            }}
                             className={cn(
                                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                                 isActive

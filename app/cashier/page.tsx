@@ -8,6 +8,8 @@ import POSNewOrder from '@/app/admin/orders/new/pos-client'
 import { CalendarDays, ShieldAlert, PlayCircle } from 'lucide-react'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CashierPage() {
   const [{ products }, { customers }, { data: paymentMethods }, settings, role, { shifts: activeShifts }] = await Promise.all([
     getProducts(),
@@ -18,7 +20,10 @@ export default async function CashierPage() {
     getActiveShifts()
   ])
 
-  const activeProducts = (products || []).filter((p) => p.status === 'active')
+  // Tampilkan semua produk yang aktif (termasuk yang stoknya habis agar kasir tahu produk ada tapi kosong)
+  const activeProducts = (products || []).filter(
+    (p) => p.status === 'active'
+  )
 
   const cashierName = role === 'admin' ? 'Admin' : 'Kasir'
 

@@ -65,7 +65,7 @@ export async function getProducts() {
     })
 
     const validExpiries = batches
-      .filter((b: any) => b.expiry_date !== null)
+      .filter((b: any) => b.expiry_date !== null && b.quantity > 0)
       .map((b: any) => b.expiry_date)
       .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime())
 

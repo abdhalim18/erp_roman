@@ -92,6 +92,7 @@ export async function addProductBatch(formData: FormData): Promise<{ success: bo
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${productId}/batches`)
+  revalidatePath('/admin/orders/new')
   return { success: true, error: null }
 }
 
@@ -113,6 +114,7 @@ export async function adjustBatchQuantity(batchId: string, productId: string, ne
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${productId}/batches`)
+  revalidatePath('/admin/orders/new')
   return { success: true, error: null }
 }
 
@@ -171,6 +173,7 @@ export async function editProductBatch(formData: FormData): Promise<{ success: b
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${productId}/batches`)
+  revalidatePath('/admin/orders/new')
   return { success: true, error: null }
 }
 
@@ -197,5 +200,6 @@ export async function deleteProductBatch(batchId: string, productId: string): Pr
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${productId}/batches`)
+  revalidatePath('/admin/orders/new')
   return { success: true, error: null }
 }

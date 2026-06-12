@@ -134,14 +134,25 @@ export default async function CashierHistoryPage({ searchParams }: { searchParam
                                         </td>
                                         <td className="px-4 py-3.5">
                                             <div className="flex flex-col gap-0.5">
-                                                {order.order_items?.map((item: OrderItem & { products: { name: string } | null }, idx: number) => {
-                                                    const productName = item.products?.name || item.product_name || 'Produk'
-                                                    return (
-                                                        <span key={idx} className="text-xs text-gray-600">
-                                                            {productName} <span className="text-gray-400">×{item.quantity}</span>
-                                                        </span>
-                                                    )
-                                                })}
+                                                {(!order.order_items || order.order_items.length === 0) ? (
+                                                    <span className="text-xs text-gray-400 italic">—</span>
+                                                ) : (
+                                                    <>
+                                                        {order.order_items.slice(0, 3).map((item: OrderItem & { products: { name: string } | null }, idx: number) => {
+                                                            const productName = item.products?.name || item.product_name || 'Produk'
+                                                            return (
+                                                                <span key={idx} className="text-xs text-gray-600 line-clamp-1" title={productName}>
+                                                                    {productName} <span className="text-gray-400 ml-1">×{item.quantity}</span>
+                                                                </span>
+                                                            )
+                                                        })}
+                                                        {order.order_items.length > 3 && (
+                                                            <span className="text-[10px] font-medium text-emerald-500 mt-0.5">
+                                                                + {order.order_items.length - 3} produk lainnya
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3.5 text-right font-semibold text-gray-900">
