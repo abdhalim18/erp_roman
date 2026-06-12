@@ -265,8 +265,8 @@ export default async function AdminDashboard() {
                 <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-amber-800">Item Stok Menipis</p>
-                    <p className="text-[10px] text-amber-600 mt-0.5">{stats.lowStockItems} item stoknya menipis (≤ {stats.lowStockThreshold} pcs).</p>
+                    <p className="text-xs font-medium text-amber-800">Stok Menipis & Habis</p>
+                    <p className="text-[10px] text-amber-600 mt-0.5">{stats.lowStockItems} item stoknya menipis atau habis (≤ {stats.lowStockThreshold} pcs).</p>
                   </div>
                   <Link href="/admin/products">
                     <Button variant="outline" size="sm" className="h-7 text-xs border-amber-200 text-amber-700 hover:bg-amber-100">
@@ -278,7 +278,9 @@ export default async function AdminDashboard() {
                   {stats.lowStockProducts.slice(0, 5).map((product) => (
                     <div key={product.id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
                       <span className="text-xs font-medium text-gray-700">{product.name}</span>
-                      <span className="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-md">{product.stock} pcs</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${product.stock <= 0 ? 'text-red-600 bg-red-50' : 'text-amber-500 bg-amber-50'}`}>
+                        {product.stock <= 0 ? 'Habis' : `${product.stock} pcs`}
+                      </span>
                     </div>
                   ))}
                   {stats.lowStockItems > 5 && (
