@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Search, Package, Edit, Trash2, Layers, TrendingDown, DollarSign, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, Layers, TrendingDown, DollarSign, AlertTriangle, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import * as XLSX from 'xlsx'
 import { Input } from '@/components/ui/input'
 import { ProductDialog } from '@/components/products/product-dialog'
 import { deleteProduct, type Product } from '@/app/actions/products'
@@ -91,6 +92,25 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
     currentPage * ITEMS_PER_PAGE
   )
 
+  const handleExportExcel = () => {
+    const exportData = filteredProducts.map((p, idx) => ({
+      'No': idx + 1,
+      'Nama Produk': p.name,
+      'Kategori': p.category_name || '-',
+      'Kode': p.kode_produk,
+      'Harga Beli (Modal)': p.cost || 0,
+      'Harga Jual': p.price,
+      'Stok Saat Ini': p.stock,
+      'Batas Stok Menipis': p.min_stock,
+      'Status': STATUS_LABELS[p.status] || p.status
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Daftar Produk")
+    XLSX.writeFile(wb, `Laporan_Stok_Produk.xlsx`)
+  }
+
   const handleAddProduct = () => {
     setSelectedProduct(null)
     setDialogMode('create')
@@ -138,10 +158,16 @@ export function ProductsClient({ initialProducts, stats }: ProductsClientProps) 
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Produk</h1>
           <p className="text-sm text-gray-500 mt-0.5">Kelola produk dan inventaris toko Anda</p>
         </div>
-        <Button onClick={handleAddProduct} size="sm" className="self-start sm:self-auto gap-1.5">
-          <Plus className="h-4 w-4" />
-          Tambah Produk
-        </Button>
+        <div className="flex flex-row items-center gap-2 self-start sm:self-auto">
+          <Button onClick={handleExportExcel} variant="outline" size="sm" className="gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-emerald-50/50">
+            <Download className="h-4 w-4" />
+            Export Excel
+          </Button>
+          <Button onClick={handleAddProduct} size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Tambah Produk
+          </Button>
+        </div>
       </div>
 
       {/* Stat Cards */}

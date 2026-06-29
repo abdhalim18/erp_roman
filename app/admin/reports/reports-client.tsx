@@ -116,6 +116,33 @@ export function ReportsClient({ initialReports, paymentMethods }: ReportsClientP
       return data
     })
 
+    // Menambahkan baris kosong sebagai pemisah
+    exportData.push({})
+
+    // Menambahkan baris Total Keseluruhan
+    const totalRow: any = {
+      [isYear ? 'Bulan' : 'Waktu']: 'TOTAL KESELURUHAN'
+    }
+    if (!isYear) {
+      totalRow['Nama Produk'] = `${filteredReports.length} baris data`
+      totalRow['Item Terjual'] = totalProductsSold
+      totalRow['Modal (Harga Beli)'] = totalCostPrice
+    }
+    totalRow['Total Pendapatan'] = totalRevenue
+    if (!isYear) {
+      totalRow['Margin'] = totalMargin
+    }
+    exportData.push(totalRow)
+
+    // Menambahkan baris Persentase Margin
+    if (!isYear) {
+      const marginRow: any = {
+        [isYear ? 'Bulan' : 'Waktu']: 'PERSENTASE MARGIN'
+      }
+      marginRow['Margin'] = `${marginPercentage.toFixed(1)}%`
+      exportData.push(marginRow)
+    }
+
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Penjualan")
@@ -147,13 +174,47 @@ export function ReportsClient({ initialReports, paymentMethods }: ReportsClientP
       formatCurrency(r.revenue - r.cost_total)
     ])
 
+    // Menambahkan baris Total Keseluruhan
+    tableRows.push(isYear ? [
+      'TOTAL KESELURUHAN',
+      formatCurrency(totalRevenue)
+    ] : [
+      'TOTAL',
+      `${filteredReports.length} baris`,
+      '-',
+      `${totalProductsSold} item`,
+      formatCurrency(totalCostPrice),
+      formatCurrency(totalRevenue),
+      formatCurrency(totalMargin)
+    ])
+
+    // Menambahkan baris Margin Keuntungan
+    if (!isYear) {
+      tableRows.push([
+        'MARGIN KEUNTUNGAN',
+        '',
+        '',
+        '',
+        '',
+        '',
+        `${marginPercentage.toFixed(1)}%`
+      ])
+    }
+
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 28,
       theme: 'grid',
       styles: { fontSize: 9 },
-      headStyles: { fillColor: [16, 185, 129] } // emerald-500
+      headStyles: { fillColor: [16, 185, 129] }, // emerald-500
+      didParseCell: function(data) {
+        // Beri style khusus (bold) pada baris Total dan Margin
+        if (data.row.index >= filteredReports.length) {
+          data.cell.styles.fontStyle = 'bold'
+          data.cell.styles.fillColor = [240, 253, 244] // emerald-50 (light green)
+        }
+      }
     })
 
     doc.save(`Laporan_Penjualan.pdf`)
